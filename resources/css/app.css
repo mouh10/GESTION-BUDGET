@@ -1,0 +1,123 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource/space-grotesk/500.css';
+@import '@fontsource/space-grotesk/600.css';
+@import '@fontsource/space-grotesk/700.css';
+@import 'tailwindcss';
+
+@source '../views';
+@source '../js';
+
+@theme {
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-titre: 'Space Grotesk', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+
+  /* Couleur d'accent (bleu) */
+  --color-marque-50: #eff6ff;
+  --color-marque-100: #dbeafe;
+  --color-marque-200: #bfdbfe;
+  --color-marque-400: #60a5fa;
+  --color-marque-500: #4a90e2;
+  --color-marque-600: #2f7bd8;
+  --color-marque-700: #1d63b8;
+  --color-marque-800: #1a4f8f;
+
+  /* Bleu nuit (boutons principaux, panneau de connexion) */
+  --color-nuit: #0b1120;
+  --color-nuit-800: #111a2e;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+  }
+  h1, h2, h3, .titre {
+    font-family: var(--font-titre);
+    letter-spacing: -0.01em;
+  }
+  h1 { @apply text-2xl sm:text-3xl font-semibold text-slate-900; }
+  h2 { @apply text-lg font-semibold text-slate-900; }
+  [x-cloak] { display: none; }
+  details > summary { list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+}
+
+/* Classes de base réutilisables (déclarées en @utility pour pouvoir être composées avec @apply). */
+@utility carte {
+  @apply bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_16px_-8px_rgba(15,23,42,0.08)];
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 cursor-pointer whitespace-nowrap;
+}
+@utility champ {
+  @apply block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-[0_1px_2px_rgba(15,23,42,0.05)] placeholder:text-slate-400 focus:border-marque-500 focus:ring-4 focus:ring-marque-500/15 focus:outline-none;
+}
+@utility badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+}
+
+@layer components {
+  .carte-entete { @apply px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between gap-3; }
+  .carte-corps { @apply p-6; }
+  .sous-titre { @apply text-sm text-slate-500; }
+
+  .btn-primaire { @apply btn bg-nuit text-white shadow-sm hover:bg-nuit-800 focus:ring-slate-400; }
+  .btn-secondaire { @apply btn bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 focus:ring-slate-300; }
+  .btn-danger { @apply btn bg-white text-red-700 border border-red-200 hover:bg-red-50 focus:ring-red-300; }
+  .btn-petit { @apply px-2.5 py-1.5 text-xs rounded-lg; }
+
+  .champ-petit { @apply champ px-2.5 py-1.5 rounded-lg; }
+  .etiquette { @apply block text-sm font-medium text-slate-700 mb-1.5; }
+  .aide { @apply mt-1 text-xs text-slate-500; }
+  .erreur-champ { @apply mt-1 text-xs text-red-600; }
+
+  .tableau { @apply w-full text-sm; }
+  .tableau thead th { @apply bg-slate-50/80 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 px-4 py-3 border-b border-slate-100; }
+  .tableau thead th.num { @apply text-right; }
+  .tableau tbody td { @apply px-4 py-3 border-b border-slate-100 align-top; }
+  .tableau tbody tr:last-child td { @apply border-b-0; }
+  .tableau tbody tr:hover td { @apply bg-slate-50/70; }
+  .tableau tfoot td { @apply px-4 py-3 font-semibold bg-slate-50 border-t border-slate-200; }
+  .num { @apply text-right tabular-nums whitespace-nowrap; }
+
+  .badge-gris { @apply badge bg-slate-100 text-slate-700; }
+  .badge-vert { @apply badge bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/15; }
+  .badge-bleu { @apply badge bg-marque-50 text-marque-700 ring-1 ring-marque-600/15; }
+  .badge-orange { @apply badge bg-amber-50 text-amber-700 ring-1 ring-amber-600/20; }
+  .badge-rouge { @apply badge bg-red-50 text-red-700 ring-1 ring-red-600/15; }
+
+  .lien { @apply text-marque-700 hover:text-marque-800 hover:underline; }
+
+  /* Menu latéral clair */
+  .nav-lien { @apply flex items-center gap-3 rounded-xl px-3 py-2 text-[15px] text-slate-700 transition hover:bg-slate-100 hover:text-slate-900; }
+  .nav-lien svg { @apply h-5 w-5 shrink-0 text-slate-500; }
+  .nav-lien.actif { @apply bg-marque-50 text-slate-900 font-medium; }
+  .nav-lien.actif svg { @apply text-marque-600; }
+  .nav-titre { @apply px-3 pt-6 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400; }
+
+  /* Indicateurs */
+  .kpi { @apply carte p-5; }
+  .kpi-libelle { @apply text-[15px] text-slate-600; }
+  .kpi-valeur { @apply mt-3 text-2xl sm:text-[28px] leading-tight font-semibold tabular-nums text-slate-900; font-family: var(--font-titre); }
+  .kpi-icone { @apply flex h-9 w-9 items-center justify-center rounded-xl; }
+
+  .menu-deroulant { @apply absolute right-0 z-40 mt-2 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl; }
+
+  /* Fond quadrillé du panneau de connexion */
+  .fond-grille {
+    background-color: var(--color-nuit);
+    background-image:
+      radial-gradient(ellipse 60% 45% at 70% 25%, rgba(59, 130, 246, 0.22), transparent 70%),
+      radial-gradient(ellipse 50% 40% at 15% 90%, rgba(59, 130, 246, 0.12), transparent 70%),
+      linear-gradient(rgba(148, 163, 184, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+  }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  .carte { box-shadow: none; border: none; }
+  main { padding: 0 !important; }
+  .lg\:pl-72 { padding-left: 0 !important; }
+}
