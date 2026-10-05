@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 /** Programme budgétaire (budget-programme). */
 class Programme extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
     protected $table = 'programmes';
 
     protected $fillable = ['code', 'libelle', 'responsable', 'objectif', 'actif'];

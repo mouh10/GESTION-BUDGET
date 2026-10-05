@@ -19,7 +19,7 @@
                         <td><a href="{{ route('tiers.show', $t) }}" class="lien font-medium">{{ $t->nom }}</a></td>
                         <td>{{ $t->ninea }}</td><td>{{ $t->telephone }}</td>
                         <td class="tabular-nums">{{ $t->compte->numero }}</td>
-                        <td class="num">{{ montant($t->resteARegler()) }}</td>
+                        <td class="num">{{ montant($t->reste_calcule) }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="6" class="text-slate-500">Aucun enregistrement.</td></tr>

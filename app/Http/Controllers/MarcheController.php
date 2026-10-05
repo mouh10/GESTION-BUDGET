@@ -72,7 +72,7 @@ class MarcheController extends Controller
             'date_signature' => ['nullable', 'date'],
             'date_fin' => ['nullable', 'date', 'after_or_equal:date_signature'],
             'statut' => ['required', Rule::in(array_keys(Marche::STATUTS))],
-            'ligne_credit_id' => ['nullable', 'exists:lignes_credit,id'],
+            'ligne_credit_id' => ['nullable', new \App\Rules\Accessible(\App\Models\LigneCredit::class)],
         ]);
     }
 

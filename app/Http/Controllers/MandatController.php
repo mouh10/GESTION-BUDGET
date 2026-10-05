@@ -30,7 +30,7 @@ class MandatController extends Controller
                         ->orWhereHas('tiers', fn ($x) => $x->where('nom', 'like', $t))));
             })
             ->orderByDesc('date')->orderByDesc('id')
-            ->paginate(25)->withQueryString();
+            ->paginate(par_page(25))->withQueryString();
 
         return view('mandats.index', [
             'mandats' => $mandats,
@@ -55,7 +55,8 @@ class MandatController extends Controller
 
     public function imprimer(Mandat $mandat)
     {
-        $mandat->load('liquidation.engagement.tiers', 'liquidation.engagement.ligneCredit.action.programme', 'liquidation.engagement.ligneCredit.service', 'liquidation.engagement.ligneCredit.nature');
+        $mandat->load('liquidation.engagement.tiers', 'liquidation.engagement.exercice', 'liquidation.engagement.ligneCredit.action.programme', 'liquidation.engagement.ligneCredit.service',
+            'liquidation.engagement.ligneCredit.nature.compte', 'paiement.compteTresorerie');
 
         return view('mandats.imprimer', compact('mandat'));
     }

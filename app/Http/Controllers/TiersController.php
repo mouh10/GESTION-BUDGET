@@ -22,7 +22,18 @@ class TiersController extends Controller
                 $q->where(fn ($w) => $w->where('nom', 'like', $t)->orWhere('code', 'like', $t)->orWhere('telephone', 'like', $t));
             })
             ->orderBy('nom')
-            ->paginate(25)->withQueryString();
+            ->paginate(par_page(25))->withQueryString();
+
+        // Restes à régler calculés en une seule requête pour toute la page (au lieu d'une par ligne).
+        $ids = $tiers->getCollection()->pluck('id');
+        $restes = $request->query('type') === 'redevable'
+            ? TitreRecette::whereIn('tiers_id', $ids)->whereIn('statut', ['emis', 'partiellement_recouvre'])
+                ->groupBy('tiers_id')->selectRaw('tiers_id, SUM(montant - montant_recouvre) as r')->pluck('r', 'tiers_id')
+            : \Illuminate\Support\Facades\DB::table('mandats as m')->join('liquidations as l', 'l.id', '=', 'm.liquidation_id')
+                ->join('engagements as e', 'e.id', '=', 'l.engagement_id')->whereIn('e.tiers_id', $ids)
+                ->whereIn('m.statut', ['emis', 'pris_en_charge'])->groupBy('e.tiers_id')
+                ->selectRaw('e.tiers_id, SUM(m.montant) as r')->pluck('r', 'tiers_id');
+        $tiers->getCollection()->each(fn ($t) => $t->reste_calcule = round((float) ($restes[$t->id] ?? 0), 2));
 
         return view('tiers.index', compact('tiers'));
     }

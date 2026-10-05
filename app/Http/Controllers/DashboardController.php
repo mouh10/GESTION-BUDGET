@@ -54,23 +54,36 @@ class DashboardController extends Controller
         ]);
     }
 
-    /** Engagements visés et paiements par mois. */
+    /** Engagements, paiements et recouvrements par mois (jusqu'au mois en cours). */
     protected function evolution(Exercice $exercice): array
     {
+        // Requêtes directes : la restriction par service est appliquée à la main.
+        $ids = \App\Models\Scopes\ParService::servicesAutorises();
+        $lignes = fn ($q) => $q->select('id')->from('lignes_credit')->whereIn('service_id', $ids);
+
         $engagements = DB::table('engagements')->where('exercice_id', $exercice->id)->whereIn('statut', ['soumis', 'vise'])
+            ->when($ids, fn ($q) => $q->whereIn('ligne_credit_id', $lignes))
             ->groupBy('date')->selectRaw('date, SUM(montant) as total')->get();
+        $recouvrements = DB::table('mouvements_tresorerie as mv')->join('titres_recette as t', 't.id', '=', 'mv.titre_recette_id')
+            ->where('t.exercice_id', $exercice->id)->where('mv.type', 'encaissement')
+            ->when($ids, fn ($q) => $q->whereIn('t.prevision_recette_id', fn ($p) => $p->select('id')->from('previsions_recette')->whereIn('service_id', $ids)))
+            ->groupBy('mv.date')->selectRaw('mv.date as date, SUM(mv.montant) as total')->get();
         $paiements = DB::table('mandats as m')->join('liquidations as l', 'l.id', '=', 'm.liquidation_id')
             ->join('engagements as e', 'e.id', '=', 'l.engagement_id')
             ->where('e.exercice_id', $exercice->id)->where('m.statut', 'paye')
+            ->when($ids, fn ($q) => $q->whereIn('e.ligne_credit_id', $lignes))
             ->groupBy('m.date_paiement')->selectRaw('m.date_paiement as date, SUM(m.montant) as total')->get();
 
         $mois = [];
         $curseur = $exercice->date_debut->copy()->startOfMonth();
         while ($curseur <= $exercice->date_fin) {
-            $mois[$curseur->format('Y-m')] = ['libelle' => ucfirst($curseur->translatedFormat('M')), 'engage' => 0, 'paye' => 0];
+            if ($curseur->greaterThan(now()->endOfMonth())) {
+                break; // pas de mois futurs sur les courbes
+            }
+            $mois[$curseur->format('Y-m')] = ['libelle' => ucfirst($curseur->translatedFormat('M')), 'engage' => 0, 'paye' => 0, 'recouvre' => 0];
             $curseur->addMonth();
         }
-        foreach ([['engage', $engagements], ['paye', $paiements]] as [$cle, $lignes]) {
+        foreach ([['engage', $engagements], ['paye', $paiements], ['recouvre', $recouvrements]] as [$cle, $lignes]) {
             foreach ($lignes as $l) {
                 $k = substr((string) $l->date, 0, 7);
                 if (isset($mois[$k])) {
@@ -81,12 +94,12 @@ class DashboardController extends Controller
 
         $mois = array_values($mois);
 
+        $labels = array_column($mois, 'libelle');
+
         return [
-            'labels' => array_column($mois, 'libelle'),
-            'series' => [
-                ['label' => 'Engagements', 'data' => array_column($mois, 'engage'), 'couleur' => '#4a90e2'],
-                ['label' => 'Paiements', 'data' => array_column($mois, 'paye'), 'couleur' => '#94a3b8'],
-            ],
+            'engage' => ['labels' => $labels, 'data' => array_column($mois, 'engage')],
+            'paye' => ['labels' => $labels, 'data' => array_column($mois, 'paye')],
+            'recouvre' => ['labels' => $labels, 'data' => array_column($mois, 'recouvre')],
         ];
     }
 }

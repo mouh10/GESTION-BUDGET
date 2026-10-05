@@ -30,7 +30,7 @@ class EcritureController extends Controller
                 $q->where(fn ($w) => $w->where('libelle', 'like', $t)->orWhere('numero_piece', 'like', $t)->orWhere('reference', 'like', $t));
             })
             ->orderByDesc('date')->orderByDesc('id')
-            ->paginate(25)
+            ->paginate(par_page(25))
             ->withQueryString();
 
         return view('ecritures.index', [

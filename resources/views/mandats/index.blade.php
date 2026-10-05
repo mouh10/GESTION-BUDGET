@@ -2,7 +2,7 @@
 <x-layout titre="Mandats">
     <x-entete titre="Mandats et paiements" sous-titre="Ordonnancement par l’ordonnateur, prise en charge et paiement par le comptable public." />
 
-    <div class="mb-5 flex flex-wrap gap-2">
+    <div class="no-print mb-5 flex flex-wrap gap-2">
         @foreach ($onglets as $v => $l)
             @php $c = $v === '' ? null : ($compteurs[$v] ?? null); @endphp
             <a href="{{ route('mandats.index', array_filter(['statut' => $v, 'q' => request('q')])) }}" class="{{ request('statut', '') === $v ? 'btn-primaire' : 'btn-secondaire' }} btn-petit">

@@ -11,12 +11,12 @@ class UtilisateurController extends Controller
 {
     public function index()
     {
-        return view('utilisateurs.index', ['utilisateurs' => User::orderBy('name')->get()]);
+        return view('utilisateurs.index', ['utilisateurs' => User::with('service')->orderBy('name')->get()]);
     }
 
     public function create()
     {
-        return view('utilisateurs.form', ['utilisateur' => new User(['role' => 'comptable', 'actif' => true])]);
+        return view('utilisateurs.form', ['utilisateur' => new User(['role' => 'ordonnateur', 'actif' => true, 'doit_changer_mdp' => true]), 'services' => \App\Models\Service::orderBy('code')->get()]);
     }
 
     public function store(Request $request)
@@ -25,9 +25,11 @@ class UtilisateurController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'role' => ['required', Rule::in(array_keys(User::ROLES))],
+            'service_id' => ['nullable', 'exists:services,id'],
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
         $data['actif'] = $request->boolean('actif');
+        $data['doit_changer_mdp'] = $request->boolean('doit_changer_mdp');
 
         User::create($data);
 
@@ -36,7 +38,7 @@ class UtilisateurController extends Controller
 
     public function edit(User $utilisateur)
     {
-        return view('utilisateurs.form', compact('utilisateur'));
+        return view('utilisateurs.form', ['utilisateur' => $utilisateur, 'services' => \App\Models\Service::orderBy('code')->get()]);
     }
 
     public function update(Request $request, User $utilisateur)
@@ -45,9 +47,11 @@ class UtilisateurController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($utilisateur->id)],
             'role' => ['required', Rule::in(array_keys(User::ROLES))],
+            'service_id' => ['nullable', 'exists:services,id'],
             'password' => ['nullable', 'confirmed', Password::min(8)],
         ]);
         $data['actif'] = $request->boolean('actif');
+        $data['doit_changer_mdp'] = $request->boolean('doit_changer_mdp');
 
         if ($utilisateur->is($request->user()) && ($data['role'] !== 'admin' || ! $data['actif'])) {
             return back()->withInput()->with('erreur', 'Vous ne pouvez pas retirer vos propres droits administrateur.');

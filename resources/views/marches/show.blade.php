@@ -26,4 +26,9 @@
             </tbody>
         </table>
     </div>
+
+    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+        <x-pieces-jointes :objet="$marche" type="marche" />
+        <x-historique :entrees="\App\Models\JournalAudit::pour([$marche])" />
+    </div>
 </x-layout>

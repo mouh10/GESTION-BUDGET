@@ -14,11 +14,24 @@
                 @endforeach
             </select>
         </div>
+        <div>
+            <label class="etiquette" for="service_id">Périmètre</label>
+            <select id="service_id" name="service_id" class="champ">
+                <option value="">Tous les services</option>
+                @foreach ($services as $s)
+                    <option value="{{ $s->id }}" @selected((string) old('service_id', $utilisateur->service_id) === (string) $s->id)>Uniquement : {{ $s->intitule }}</option>
+                @endforeach
+            </select>
+            <p class="aide">Rattaché à un service, l’utilisateur ne voit et ne traite que les crédits, engagements, mandats, titres et actes de ce service. Sans effet pour un administrateur.</p>
+        </div>
         <div class="grid gap-4 sm:grid-cols-2">
             <x-champ nom="password" label="Mot de passe" type="password" :requis="! $utilisateur->exists" autocomplete="new-password"
                      :aide="$utilisateur->exists ? 'Laisser vide pour ne pas changer.' : '8 caractères minimum.'" />
             <x-champ nom="password_confirmation" label="Confirmation" type="password" :requis="! $utilisateur->exists" autocomplete="new-password" />
         </div>
+        <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="doit_changer_mdp" value="1" class="rounded border-slate-300" @checked(old('doit_changer_mdp', $utilisateur->doit_changer_mdp))> Imposer un nouveau mot de passe à la prochaine connexion
+        </label>
         <label class="flex items-center gap-2 text-sm">
             <input type="checkbox" name="actif" value="1" class="rounded border-slate-300" @checked(old('actif', $utilisateur->actif))> Compte actif
         </label>

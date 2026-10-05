@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Tiers extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
     protected $table = 'tiers';
 
     protected $fillable = ['type', 'code', 'nom', 'ninea', 'rib', 'adresse', 'telephone', 'email', 'compte_id', 'actif'];

@@ -5,7 +5,6 @@
     <form method="GET" class="carte carte-corps no-print mb-4 flex flex-wrap items-end gap-3">
         <div><label class="etiquette" for="au">Situation au</label><input id="au" type="date" name="au" value="{{ request('au') }}" class="champ"></div>
         <button class="btn-secondaire">Afficher</button>
-        <button type="button" class="btn-secondaire" onclick="window.print()">Imprimer</button>
     </form>
 
     @if (abs($ecart) >= 0.01)

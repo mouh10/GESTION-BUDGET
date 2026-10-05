@@ -63,19 +63,21 @@ class DemoSeeder extends Seeder
             ['DAGE', "Direction de l'Administration générale et de l'Équipement", 'M. Diallo'],
             ['DRH', 'Direction des Ressources humaines', 'Mme Ba'],
             ['DSI', 'Direction des Systèmes d’information', 'M. Gueye'],
-            ['CPM', 'Cellule de Passation des Marchés', 'Mme Sy'],
         ])->mapWithKeys(fn ($s) => [$s[0] => Service::create(['code' => $s[0], 'libelle' => $s[1], 'responsable' => $s[2]])]);
+
+        // Gestionnaire dont le périmètre est limité à la DRH
+        $u('drh@gestion.test', 'Khady Faye (DRH)', 'ordonnateur')->update(['service_id' => $services['DRH']->id]);
 
         $actions = [];
         foreach ([
             ['1001', 'Pilotage, coordination et gestion administrative', 'Secrétaire général', "Assurer le pilotage stratégique et la gestion efficiente des ressources du ministère.", [
-                ['01', 'Coordination et pilotage'], ['02', 'Gestion des ressources humaines'], ['03', 'Gestion financière et matérielle'],
+                ['01', 'Gestion des ressources humaines'], ['02', 'Gestion financière et matérielle'],
             ]],
             ['1002', 'Modernisation et digitalisation des services publics', 'Directeur des Systèmes d’information', 'Dématérialiser les procédures administratives et moderniser les infrastructures numériques.', [
-                ['01', 'Dématérialisation des procédures'], ['02', 'Infrastructures numériques'],
+                ['01', 'Infrastructures numériques'],
             ]],
             ['1003', 'Renforcement des capacités des agents', 'Directeur des Ressources humaines', 'Améliorer les compétences des agents publics.', [
-                ['01', 'Formation continue'], ['02', 'Bourses et appui aux écoles de formation'],
+                ['01', 'Formation continue'],
             ]],
         ] as [$code, $libelle, $resp, $objectif, $acts]) {
             $programme = Programme::create(['code' => $code, 'libelle' => $libelle, 'responsable' => $resp, 'objectif' => $objectif]);
@@ -84,33 +86,19 @@ class DemoSeeder extends Seeder
             }
         }
 
-        /* ------------------------- Crédits votés ------------------------- */
+        /* ------------------------- Crédits votés (quelques lignes) ------------------------- */
         $M = 1000000;
         $lignes = [];
         foreach ([
             // action, service, nature, source, AE, CP (en millions)
-            ['1001.02', 'DRH', '661', 'etat', 480, 480],
-            ['1001.02', 'DRH', '663', 'etat', 90, 90],
-            ['1001.02', 'DRH', '664', 'etat', 72, 72],
-            ['1001.01', 'DAGE', '632', 'etat', 30, 30],
-            ['1001.03', 'DAGE', '6051', 'etat', 6, 6],
-            ['1001.03', 'DAGE', '6052', 'etat', 36, 36],
-            ['1001.03', 'DAGE', '6053', 'etat', 24, 24],
-            ['1001.03', 'DAGE', '6055', 'etat', 18, 18],
-            ['1001.03', 'DAGE', '622', 'etat', 48, 48],
-            ['1001.03', 'DAGE', '624', 'etat', 20, 20],
-            ['1001.03', 'DAGE', '625', 'etat', 8, 8],
-            ['1001.03', 'DAGE', '628', 'etat', 15, 15],
-            ['1001.03', 'DAGE', '6381', 'etat', 25, 25],
-            ['1001.03', 'DAGE', '245', 'etat', 90, 90],
-            ['1001.03', 'DAGE', '231', 'etat', 400, 150],
-            ['1002.01', 'DSI', '213', 'etat', 250, 120],
-            ['1002.02', 'DSI', '2442', 'etat', 180, 150],
-            ['1002.02', 'DSI', '2442', 'don', 200, 100],
+            ['1001.01', 'DRH', '661', 'etat', 480, 480],
+            ['1001.01', 'DRH', '664', 'etat', 72, 72],
+            ['1001.02', 'DAGE', '6052', 'etat', 36, 36],
+            ['1001.02', 'DAGE', '6055', 'etat', 18, 18],
+            ['1001.02', 'DAGE', '622', 'etat', 48, 48],
+            ['1001.02', 'DAGE', '6381', 'etat', 25, 25],
+            ['1002.01', 'DSI', '2442', 'etat', 180, 150],
             ['1003.01', 'DRH', '633', 'etat', 45, 45],
-            ['1003.02', 'DRH', '6583', 'etat', 60, 60],
-            ['1003.02', 'DAGE', '6581', 'etat', 150, 150],
-            ['1003.02', 'DAGE', '6585', 'etat', 100, 50],
         ] as [$a, $s, $n, $src, $ae, $cp]) {
             $lignes["$a|$n|$src"] = LigneCredit::create([
                 'exercice_id' => $exercice->id, 'action_id' => $actions[$a]->id, 'service_id' => $services[$s]->id,
@@ -128,110 +116,57 @@ class DemoSeeder extends Seeder
         $personnel = $f('FRS-000', "Personnel de l'État (états de paie)", '422');
         $caisseSociale = $f('FRS-001', 'Caisse de sécurité sociale (cotisations)', '431');
         $electricite = $f('FRS-002', "Compagnie d'électricité");
-        $eau = $f('FRS-003', "Société de distribution d'eau");
-        $carburant = $f('FRS-004', 'Station-service Plateau');
         $bailleur = $f('FRS-005', 'Immobilière du Plateau');
-        $telecom = $f('FRS-006', 'Opérateur Télécom Pro');
         $papeterie = $f('FRS-007', 'Papeterie Moderne SARL');
         $informatique = $f('FRS-008', 'Informatique Services SARL');
-        $digital = $f('FRS-009', 'Digital Solutions Afrique');
-        $nettoyage = $f('FRS-010', 'Société de Nettoyage Teranga');
         $voyages = $f('FRS-011', 'Agence de Voyages Horizon');
-        $ecole = $f('FRS-012', 'École nationale de formation administrative (EP)');
         $cabinet = $f('FRS-013', 'Cabinet Conseil & Audit');
 
         $usagers = $f('RDV-001', 'Usagers des services (redevances)', '4111', 'redevable');
         $candidats = $f('RDV-002', 'Candidats aux concours administratifs', '4111', 'redevable');
-        $occupant = $f('RDV-003', 'Occupants de logements administratifs', '4111', 'redevable');
-        $ptf = $f('RDV-004', 'Partenaire technique et financier (don)', '4111', 'redevable');
 
         /* ------------------------- Trésorerie ------------------------- */
-        $tresor = CompteTresorerie::create(['nom' => 'Compte de dépôt au Trésor', 'type' => 'tresor', 'numero' => 'Trésor public', 'compte_id' => $compte('532'), 'journal_id' => Journal::parCode('TR')->id, 'solde_initial' => 1500 * $M]);
-        $banqueDon = CompteTresorerie::create(['nom' => 'Compte spécial du don', 'type' => 'banque', 'numero' => 'SN000 01001 000123456789 00', 'compte_id' => $compte('521'), 'journal_id' => Journal::parCode('BQ')->id, 'solde_initial' => 0]);
-        $regie = CompteTresorerie::create(['nom' => "Régie d'avances", 'type' => 'regie', 'compte_id' => $compte('581'), 'journal_id' => Journal::parCode('RG')->id, 'solde_initial' => 0]);
+        $tresor = CompteTresorerie::create(['nom' => 'Compte de dépôt au Trésor', 'type' => 'tresor', 'numero' => 'Trésor public', 'compte_id' => $compte('532'), 'journal_id' => Journal::parCode('TR')->id, 'solde_initial' => 1000 * $M]);
+        CompteTresorerie::create(['nom' => "Régie d'avances", 'type' => 'regie', 'compte_id' => $compte('581'), 'journal_id' => Journal::parCode('RG')->id, 'solde_initial' => 0]);
         $compta->ouvertureTresorerie($tresor, $compte('121'), $exercice->date_debut->toDateString());
 
-        /* ------------------------- Marchés ------------------------- */
-        $mc = fn ($num, $objet, $tiers, $type, $mode, $montant, $date, $ligne) => Marche::create([
-            'exercice_id' => $exercice->id, 'numero' => $num, 'objet' => $objet, 'tiers_id' => $tiers->id, 'type' => $type,
-            'mode_passation' => $mode, 'montant' => $montant, 'date_signature' => "$annee-$date", 'ligne_credit_id' => $ligne->id,
+        /* ------------------------- Marché ------------------------- */
+        $mInfo = Marche::create([
+            'exercice_id' => $exercice->id, 'numero' => "F-$annee-001/CPM", 'objet' => 'Acquisition de matériel informatique pour les directions',
+            'tiers_id' => $informatique->id, 'type' => 'fournitures', 'mode_passation' => 'aoo', 'montant' => 120 * $M,
+            'date_signature' => "$annee-02-15", 'ligne_credit_id' => $L('1002.01', '2442')->id,
         ]);
-        $mInfo = $mc("F-$annee-001/CPM", 'Acquisition de matériel informatique pour les directions', $informatique, 'fournitures', 'aoo', 140 * $M, '03-02', $L('1002.02', '2442'));
-        $mPlateforme = $mc("PI-$annee-002/CPM", 'Développement de la plateforme de dématérialisation des procédures', $digital, 'prestations_intellectuelles', 'aoo', 110 * $M, '03-15', $L('1002.01', '213'));
-        $mNettoyage = $mc("S-$annee-003/CPM", 'Entretien et nettoyage des locaux', $nettoyage, 'services', 'drp', 18 * $M, '01-10', $L('1001.03', '624'));
-        $mDon = $mc("F-$annee-004/CPM", 'Équipement informatique des centres de services (financement don)', $informatique, 'fournitures', 'aoo', 95 * $M, '04-20', $L('1002.02', '2442', 'don'));
 
         /* ------------------------- Recettes ------------------------- */
         $prev = fn ($n, $s, $montant) => PrevisionRecette::create(['exercice_id' => $exercice->id, 'service_id' => $services[$s]->id, 'nature_id' => $nature($n), 'montant_prevu' => $montant]);
         $pRedevances = $prev('7064', 'DAGE', 45 * $M);
         $pConcours = $prev('7065', 'DRH', 30 * $M);
-        $pLoyers = $prev('7581', 'DAGE', 12 * $M);
-        $pDon = $prev('711', 'DSI', 200 * $M);
 
-        $jour = fn (int $m, int $j) => Carbon::create($annee, $m, 1)->addDays($j - 1)->min(Carbon::create($annee, $m, 1)->endOfMonth())->min($this->aujourdhui)->toDateString();
+        $jour = fn (int $m, int $j) => Carbon::create($annee, max(1, min(12, $m)), 1)->addDays($j - 1)->min(Carbon::create($annee, max(1, min(12, $m)), 1)->endOfMonth())->min($this->aujourdhui)->toDateString();
+        $milieu = max(1, intdiv($moisMax, 2));
 
-        /* ------------------------- Exécution mensuelle ------------------------- */
-        for ($m = 1; $m <= $moisMax; $m++) {
-            $courant = $m === $moisMax;
-
-            // Personnel : état de paie mensuel
-            $this->chaine($L('1001.02', '661'), $personnel, $jour($m, 20), 39.5 * $M, "Salaires du mois de ".Carbon::create($annee, $m)->translatedFormat('F'), 'salaires', $courant ? 'mandate' : 'paye');
-            $this->chaine($L('1001.02', '663'), $personnel, $jour($m, 20), 7.2 * $M, 'Indemnités et primes du mois', 'salaires', $courant ? 'vise' : 'paye');
-            $this->chaine($L('1001.02', '664'), $caisseSociale, $jour($m, 22), 5.9 * $M, 'Cotisations sociales du mois', 'decision', $courant ? 'soumis' : 'paye');
-
-            // Fonctionnement courant
-            $this->chaine($L('1001.03', '6052'), $electricite, $jour($m, 5), mt_rand(26, 34) * 100000, 'Facture d’électricité', 'bon_commande', $courant ? 'pris_en_charge' : 'paye');
-            $this->chaine($L('1001.03', '6051'), $eau, $jour($m, 6), mt_rand(4, 5) * 100000, 'Facture d’eau', 'bon_commande', 'paye');
-            $this->chaine($L('1001.03', '622'), $bailleur, $jour($m, 2), 5 * $M, 'Loyer des bureaux', 'decision', 'paye');
-            $this->chaine($L('1001.03', '628'), $telecom, $jour($m, 10), 1.25 * $M, 'Abonnements téléphone et internet', 'bon_commande', $courant ? 'liquide' : 'paye');
-            $this->chaine($L('1001.03', '6053'), $carburant, $jour($m, 8), 2 * $M, 'Bons de carburant', 'bon_commande', 'paye');
-            $this->chaine($L('1001.03', '624'), $nettoyage, $jour($m, 28), 1.5 * $M, 'Nettoyage des locaux (marché)', 'marche', $courant ? 'mandate' : 'paye', $mNettoyage);
-
-            if ($m % 2 === 0) {
-                $this->chaine($L('1001.03', '6055'), $papeterie, $jour($m, 12), mt_rand(20, 32) * 100000, 'Fournitures de bureau', 'bon_commande', 'paye');
-                $this->chaine($L('1001.03', '6381'), $voyages, $jour($m, 14), mt_rand(25, 45) * 100000, 'Billets et frais de mission', 'mission', 'paye');
-            }
-            if ($m % 3 === 0) {
-                $this->chaine($L('1003.02', '6581'), $ecole, $jour($m, 15), 37.5 * $M, 'Transfert trimestriel à l’école de formation', 'decision', 'paye');
-                $this->chaine($L('1003.02', '6583'), $personnel, $jour($m, 16), 12 * $M, 'Bourses de formation du trimestre', 'decision', 'paye');
-                $recettes->recouvrer($recettes->emettre(['prevision_recette_id' => $pLoyers->id, 'tiers_id' => $occupant->id, 'date' => $jour($m, 5), 'objet' => 'Loyers du trimestre', 'montant' => 3 * $M]), $tresor, ['date' => $jour($m, 20), 'montant' => 3 * $M, 'mode' => 'virement']);
-            }
-
-            // Redevances mensuelles
-            $t = $recettes->emettre(['prevision_recette_id' => $pRedevances->id, 'tiers_id' => $usagers->id, 'date' => $jour($m, 3), 'objet' => 'Redevances administratives du mois', 'montant' => mt_rand(32, 40) * 100000]);
-            if (! $courant) {
-                $recettes->recouvrer($t, $tresor, ['date' => $jour($m, 25), 'montant' => $t->montant, 'mode' => 'especes']);
-            }
-        }
-
-        // Marchés et investissements
-        $this->chaine($L('1002.02', '2442'), $informatique, $jour(3, 10), 140 * $M, $mInfo->objet, 'marche', 'vise', $mInfo);
-        $eInfo = Engagement::where('marche_id', $mInfo->id)->first();
-        $this->liquiderEtPayer($eInfo, $jour(5, 5), 70 * $M, 'Livraison n°1 (50 %)', 'paye');
-        if ($moisMax >= 9) {
-            $this->liquiderEtPayer($eInfo, $jour(9, 3), 70 * $M, 'Livraison n°2 (solde)', 'pris_en_charge');
-        }
-
-        $this->chaine($L('1002.01', '213'), $digital, $jour(3, 20), 110 * $M, $mPlateforme->objet, 'marche', 'vise', $mPlateforme);
-        $ePlat = Engagement::where('marche_id', $mPlateforme->id)->first();
-        $this->liquiderEtPayer($ePlat, $jour(4, 25), 33 * $M, 'Avance de démarrage (30 %)', 'paye');
-        $this->liquiderEtPayer($ePlat, $jour(7, 30), 22 * $M, 'Livrable 1 : cahier des charges validé', 'paye');
-
-        $recettes->recouvrer($recettes->emettre(['prevision_recette_id' => $pDon->id, 'tiers_id' => $ptf->id, 'date' => $jour(4, 2), 'objet' => 'Première tranche du don', 'montant' => 100 * $M]), $banqueDon, ['date' => $jour(4, 10), 'montant' => 100 * $M, 'mode' => 'virement']);
-        $this->chaine($L('1002.02', '2442', 'don'), $informatique, $jour(5, 2), 95 * $M, $mDon->objet, 'marche', 'vise', $mDon);
-        $this->liquiderEtPayer(Engagement::where('marche_id', $mDon->id)->first(), $jour(7, 10), 60 * $M, 'Livraison partielle', 'paye', $banqueDon);
-
-        $this->chaine($L('1001.03', '245'), $f('FRS-014', 'Garage Central Automobiles'), $jour(6, 12), 42 * $M, 'Acquisition de deux véhicules de liaison', 'bon_commande', 'paye');
-        $this->chaine($L('1001.01', '632'), $cabinet, $jour(5, 18), 12 * $M, "Audit organisationnel des services", 'bon_commande', 'paye');
+        /* ------------------------- Dépenses : un exemple par étape de la chaîne ------------------------- */
+        $this->chaine($L('1001.01', '661'), $personnel, $jour(1, 20), 39.5 * $M, 'Salaires du mois de janvier', 'salaires', 'paye');
+        $this->chaine($L('1001.01', '661'), $personnel, $jour($milieu, 20), 39.5 * $M, 'Salaires du mois de '.Carbon::create($annee, $milieu)->translatedFormat('F'), 'salaires', 'paye');
+        $this->chaine($L('1001.02', '622'), $bailleur, $jour(2, 2), 15 * $M, 'Loyer des bureaux (1er trimestre)', 'decision', 'paye');
         $this->chaine($L('1003.01', '633'), $cabinet, $jour(4, 8), 18 * $M, 'Formation des agents à la gestion axée sur les résultats', 'bon_commande', 'paye');
-        $this->chaine($L('1003.02', '6585'), $ecole, $jour(6, 30), 30 * $M, "Subvention d'équipement à l'école de formation", 'decision', 'mandate');
+        $this->chaine($L('1001.01', '661'), $personnel, $jour($moisMax, 20), 39.5 * $M, 'Salaires du mois de '.Carbon::create($annee, $moisMax)->translatedFormat('F'), 'salaires', 'mandate');
+        $this->chaine($L('1001.02', '6052'), $electricite, $jour($moisMax, 5), 3 * $M, 'Facture d’électricité', 'bon_commande', 'pris_en_charge');
+        $this->chaine($L('1001.02', '6055'), $papeterie, $jour($moisMax, 3), 2.4 * $M, 'Fournitures de bureau', 'bon_commande', 'liquide');
+        $this->chaine($L('1001.01', '664'), $caisseSociale, $jour($moisMax, 22), 5.9 * $M, 'Cotisations sociales du mois', 'decision', 'soumis');
+        $this->chaine($L('1001.02', '6381'), $voyages, $jour($moisMax, 1), 8 * $M, 'Mission à l’étranger (pièces incomplètes)', 'mission', 'rejete');
+        $this->chaine($L('1001.02', '6381'), $voyages, $jour($moisMax, 4), 2.5 * $M, 'Billets pour la mission de supervision', 'mission', 'brouillon');
 
-        // Engagement rejeté par le contrôle financier (exemple)
-        $this->chaine($L('1001.03', '6381'), $voyages, $jour($moisMax, 1), 8 * $M, 'Mission à l’étranger (pièces incomplètes)', 'mission', 'rejete');
+        // Marché : engagé en totalité, une livraison payée, le solde reste à liquider
+        $this->chaine($L('1002.01', '2442'), $informatique, $jour(3, 10), 120 * $M, $mInfo->objet, 'marche', 'vise', $mInfo);
+        $this->liquiderEtPayer(Engagement::where('marche_id', $mInfo->id)->first(), $jour(5, 5), 60 * $M, 'Livraison n°1 (50 %)', 'paye');
 
-        // Concours administratifs
-        $t = $recettes->emettre(['prevision_recette_id' => $pConcours->id, 'tiers_id' => $candidats->id, 'date' => $jour(5, 2), 'objet' => "Frais d'inscription aux concours", 'montant' => 22 * $M]);
-        $recettes->recouvrer($t, $tresor, ['date' => $jour(5, 30), 'montant' => 18.5 * $M, 'mode' => 'especes']);
+        /* ------------------------- Recettes ------------------------- */
+        $t = $recettes->emettre(['prevision_recette_id' => $pRedevances->id, 'tiers_id' => $usagers->id, 'date' => $jour(2, 3), 'objet' => 'Redevances administratives du trimestre', 'montant' => 11 * $M]);
+        $recettes->recouvrer($t, $tresor, ['date' => $jour(3, 25), 'montant' => $t->montant, 'mode' => 'especes']);
+        $t = $recettes->emettre(['prevision_recette_id' => $pConcours->id, 'tiers_id' => $candidats->id, 'date' => $jour($milieu, 2), 'objet' => "Frais d'inscription aux concours", 'montant' => 22 * $M]);
+        $recettes->recouvrer($t, $tresor, ['date' => $jour($milieu, 28), 'montant' => 18.5 * $M, 'mode' => 'especes']);
+        $recettes->emettre(['prevision_recette_id' => $pRedevances->id, 'tiers_id' => $usagers->id, 'date' => $jour($moisMax, 3), 'objet' => 'Redevances administratives du mois', 'montant' => 3.6 * $M]);
 
         /* ------------------------- Modifications budgétaires ------------------------- */
         $acte = function (string $type, string $date, string $ref, string $motif, array $mouvements, bool $approuver) use ($exercice, $credits) {
@@ -244,20 +179,19 @@ class DemoSeeder extends Seeder
                 $modif->lignes()->create(['ligne_credit_id' => $ligne->id, 'ae' => $ae, 'cp' => $cp]);
             }
             if ($approuver) {
+                Carbon::setTestNow(Carbon::parse($date)->setTime(12, 0));
                 $credits->approuver($modif);
+                Carbon::setTestNow();
             }
         };
         $acte('virement', $jour(4, 15), "Arrêté n° 00{$annee}-041", 'Renforcement des crédits de mission', [
-            [$L('1001.03', '625'), -3 * $M, -3 * $M], [$L('1001.03', '6381'), 3 * $M, 3 * $M],
+            [$L('1001.02', '6055'), -3 * $M, -3 * $M], [$L('1001.02', '6381'), 3 * $M, 3 * $M],
         ], true);
-        $acte('gel', $jour(6, 1), 'Circulaire de régulation budgétaire', 'Mise en réserve de 10 % des crédits d’études', [
-            [$L('1001.01', '632'), 3 * $M, 3 * $M],
+        $acte('gel', $jour(6, 1), 'Circulaire de régulation budgétaire', 'Mise en réserve de crédits de loyer', [
+            [$L('1001.02', '622'), 4 * $M, 4 * $M],
         ], true);
-        $acte('ouverture', $jour(7, 1), "LFR n° {$annee}-01", 'Ouverture de crédits pour la fibre optique des directions', [
-            [$L('1002.02', '2442'), 40 * $M, 30 * $M],
-        ], true);
-        $acte('transfert', $jour(min($moisMax, 9), 2), "Projet de décret n° {$annee}-xxx", 'Transfert de crédits de formation vers la dématérialisation', [
-            [$L('1003.01', '633'), -5 * $M, -5 * $M], [$L('1002.01', '213'), 5 * $M, 5 * $M],
+        $acte('transfert', $jour($moisMax, 2), "Projet de décret n° {$annee}-xxx", 'Transfert de crédits de formation vers les infrastructures numériques', [
+            [$L('1003.01', '633'), -5 * $M, -5 * $M], [$L('1002.01', '2442'), 5 * $M, 5 * $M],
         ], false);
     }
 
@@ -274,7 +208,9 @@ class DemoSeeder extends Seeder
         if ($etape === 'brouillon') {
             return $e;
         }
+        Carbon::setTestNow(Carbon::parse($date)->setTime(9, 0));   // horodatages cohérents avec les dates des pièces
         $this->depenses->soumettre($e);
+        Carbon::setTestNow();
         if ($etape === 'soumis') {
             return $e;
         }
@@ -283,7 +219,9 @@ class DemoSeeder extends Seeder
 
             return $e;
         }
+        Carbon::setTestNow(Carbon::parse($date)->addDay()->min($this->aujourdhui)->setTime(11, 0));
         $this->depenses->viser($e, $this->controleur);
+        Carbon::setTestNow();
         if ($etape !== 'vise') {
             $this->liquiderEtPayer($e, $date, $montant, null, $etape);
         }
@@ -303,7 +241,9 @@ class DemoSeeder extends Seeder
         if ($etape === 'mandate') {
             return;
         }
+        Carbon::setTestNow(Carbon::parse($d(7))->setTime(10, 0));
         $this->depenses->prendreEnCharge($mandat, $d(7));
+        Carbon::setTestNow();
         if ($etape === 'pris_en_charge') {
             return;
         }

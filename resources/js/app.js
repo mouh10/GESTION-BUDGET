@@ -1,11 +1,11 @@
 import {
   Chart, BarController, BarElement, LineController, LineElement, PointElement,
-  CategoryScale, LinearScale, Tooltip, Legend,
+  CategoryScale, LinearScale, Tooltip, Legend, Filler,
 } from 'chart.js';
 
-Chart.defaults.font.family = "'Inter Variable', 'Inter', system-ui, sans-serif";
+Chart.defaults.font.family = "'Public Sans Variable', 'Public Sans', system-ui, sans-serif";
 Chart.defaults.color = '#64748b';
-Chart.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend);
+Chart.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, Filler);
 
 const fmt = (n) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(Math.round(n || 0));
 const nombre = (v) => {
@@ -38,6 +38,19 @@ document.addEventListener('click', (e) => {
   document.querySelectorAll('details[data-deroulant][open]').forEach((d) => {
     if (!d.contains(e.target)) d.removeAttribute('open');
   });
+});
+
+/* Messages : fermeture manuelle, et disparition automatique des confirmations */
+document.addEventListener('click', (e) => {
+  const bouton = e.target.closest('[data-fermer]');
+  if (bouton) bouton.parentElement.remove();
+});
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-flash]').forEach((el) => {
+    setTimeout(() => { el.style.transition = 'opacity .4s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 400); }, 6000);
+  });
+  // Garde l'entrée active du menu visible
+  document.querySelector('[data-menu-defilement] .nav-lien.actif')?.scrollIntoView({ block: 'nearest' });
 });
 
 /* Confirmation avant les actions sensibles */
@@ -189,7 +202,95 @@ function initialiserGraphique(canvas) {
   });
 }
 
+/* Courbe blanche dans les grandes cartes colorées du tableau de bord */
+function initialiserCourbe(canvas) {
+  const d = JSON.parse(canvas.dataset.courbe);
+  const blanc = 'rgba(255,255,255,0.95)';
+  const discret = 'rgba(255,255,255,0.7)';
+  new Chart(canvas, {
+    type: 'line',
+    data: { labels: d.labels, datasets: [{ data: d.data, borderColor: blanc, backgroundColor: 'rgba(255,255,255,0.18)', fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: blanc, borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${fmt(ctx.parsed.y)} FCFA` } } },
+      scales: {
+        x: { grid: { display: false }, border: { display: false }, ticks: { color: discret, font: { size: 10 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.15)' }, border: { display: false }, ticks: { color: discret, font: { size: 10 }, maxTicksLimit: 4, callback: (v) => (Math.abs(v) >= 1e6 ? `${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(v / 1e6)} M` : fmt(v)) } },
+      },
+    },
+  });
+}
+
+/* Onglets à l'intérieur d'une page (sans rechargement) */
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-onglet]');
+  if (!b) return;
+  const zone = b.closest('[data-onglets-locaux]');
+  zone.querySelectorAll('[data-onglet]').forEach((x) => x.classList.toggle('actif', x === b));
+  zone.querySelectorAll('[data-panneau]').forEach((p) => { p.hidden = p.dataset.panneau !== b.dataset.onglet; });
+});
+
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-courbe]').forEach(initialiserCourbe);
   document.querySelectorAll('[data-lignes]').forEach(initialiserLignes);
   document.querySelectorAll('[data-graphique]').forEach(initialiserGraphique);
+});
+
+/* ------------------------------------------------------------------
+ |  Lignes de tableau cliquables : un clic n'importe où sur la ligne
+ |  ouvre le premier lien de la ligne (ou data-href). Ctrl/Cmd-clic ou
+ |  clic molette : nouvel onglet. Les boutons, champs et liens gardent
+ |  leur comportement propre ; une sélection de texte n'ouvre rien.
+ * ------------------------------------------------------------------ */
+const ZONES_INTERACTIVES = 'a, button, input, select, textarea, label, summary, details, form, [data-sans-clic]';
+
+function lienDeLigne(tr) {
+    if (tr.dataset.href) return tr.dataset.href;
+    const a = tr.querySelector('a[href]:not([target="_blank"])');
+    return a ? a.href : null;
+}
+
+function preparerLignesCliquables(racine = document) {
+    racine.querySelectorAll('table.tableau:not([data-sans-clic]) > tbody > tr').forEach((tr) => {
+        if (lienDeLigne(tr)) tr.classList.add('ligne-cliquable');
+    });
+}
+
+function ouvrirLigne(e) {
+    const tr = e.target.closest('tr.ligne-cliquable');
+    if (!tr || e.target.closest(ZONES_INTERACTIVES)) return;
+    if (window.getSelection && String(window.getSelection()).trim() !== '') return;
+    const url = lienDeLigne(tr);
+    if (!url) return;
+    if (e.button === 1 || e.ctrlKey || e.metaKey) {
+        window.open(url, '_blank');
+    } else if (e.button === 0) {
+        window.location.href = url;
+    }
+}
+document.addEventListener('click', ouvrirLigne);
+document.addEventListener('auxclick', (e) => { if (e.button === 1) ouvrirLigne(e); });
+
+/* Colonnes d'actions (en-tête vide : Modifier, Supprimer…) masquées à l'impression. */
+function marquerColonnesActions(racine = document) {
+    racine.querySelectorAll('table.tableau').forEach((table) => {
+        const entetes = table.tHead?.rows[table.tHead.rows.length - 1];
+        if (!entetes || [...entetes.cells].some((c) => c.colSpan > 1)) return;
+        const vides = [...entetes.cells].map((c, i) => (c.textContent.trim() === '' && !c.querySelector('input') ? i : -1)).filter((i) => i >= 0);
+        if (!vides.length) return;
+        [...table.rows].forEach((row) => {
+            if ([...row.cells].some((c) => c.colSpan > 1)) return;
+            vides.forEach((i) => row.cells[i]?.classList.add('col-actions'));
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    preparerLignesCliquables();
+    marquerColonnesActions();
+
+    // Page ouverte avec ?impression=1 : impression automatique une fois les graphiques dessinés.
+    if (document.body.hasAttribute('data-impression')) {
+        setTimeout(() => window.print(), 700);
+    }
 });

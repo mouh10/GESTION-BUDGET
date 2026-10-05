@@ -12,6 +12,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class LigneCredit extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
+    protected static function booted(): void
+    {
+        // Utilisateur rattaché à un service : il ne voit que les données de son service.
+        static::addGlobalScope(new \App\Models\Scopes\ParService('service'));
+    }
+
     protected $table = 'lignes_credit';
 
     protected $fillable = ['exercice_id', 'action_id', 'service_id', 'nature_id', 'source', 'libelle', 'ae_initiale', 'cp_initial'];

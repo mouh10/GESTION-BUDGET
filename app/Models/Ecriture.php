@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class Ecriture extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
     protected $table = 'ecritures';
 
     protected $fillable = [

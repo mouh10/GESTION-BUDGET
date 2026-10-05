@@ -9,6 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 /** Mandat de paiement (ordonnancement). */
 class Mandat extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
+    protected static function booted(): void
+    {
+        // Utilisateur rattaché à un service : il ne voit que les données de son service.
+        static::addGlobalScope(new \App\Models\Scopes\ParService('liquidation'));
+    }
+
     protected $table = 'mandats';
 
     protected $fillable = ['liquidation_id', 'numero', 'date', 'montant', 'statut', 'motif_rejet', 'pris_en_charge_le', 'date_paiement', 'ecriture_id', 'user_id'];

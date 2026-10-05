@@ -64,7 +64,7 @@ class LigneCreditController extends Controller
         return view('credits.show', [
             'ligne' => $credit,
             's' => $this->credits->pourLigne($credit),
-            'engagements' => Engagement::with('tiers')->where('ligne_credit_id', $credit->id)->orderByDesc('date')->orderByDesc('id')->paginate(20),
+            'engagements' => Engagement::with('tiers')->where('ligne_credit_id', $credit->id)->orderByDesc('date')->orderByDesc('id')->paginate(par_page(20)),
             'modifications' => ModificationLigne::with('modification')->where('ligne_credit_id', $credit->id)->orderByDesc('id')->get(),
         ]);
     }
@@ -108,7 +108,7 @@ class LigneCreditController extends Controller
     {
         $data = $request->validate([
             'action_id' => ['required', 'exists:actions,id'],
-            'service_id' => ['required', 'exists:services,id'],
+            'service_id' => ['required', 'exists:services,id', \Illuminate\Validation\Rule::in(\App\Models\Scopes\ParService::servicesAutorises() ?? \App\Models\Service::pluck('id')->all())],
             'nature_id' => ['required', Rule::exists('natures', 'id')->where('type', 'depense')],
             'source' => ['required', Rule::in(array_keys(LigneCredit::SOURCES))],
             'libelle' => ['nullable', 'string', 'max:255'],
@@ -136,7 +136,7 @@ class LigneCreditController extends Controller
     {
         return [
             'actions' => Action::with('programme')->get()->sortBy(fn ($a) => $a->programme->code.$a->code),
-            'services' => Service::where('actif', true)->orderBy('code')->get(),
+            'services' => Service::where('actif', true)->when(\App\Models\Scopes\ParService::servicesAutorises(), fn ($q, $ids) => $q->whereIn('id', $ids))->orderBy('code')->get(),
             'natures' => Nature::depenses()->where('actif', true)->orderBy('titre')->orderBy('code')->get(),
         ];
     }

@@ -4,7 +4,7 @@
             <a href="{{ route('titres.create') }}" class="btn-primaire"><x-icone nom="plus" class="h-4 w-4" /> Émettre un titre</a>
         @endif
     </x-entete>
-    <div class="mb-5 flex flex-wrap gap-2">
+    <div class="no-print mb-5 flex flex-wrap gap-2">
         <a href="{{ route('titres.index') }}" class="{{ request('statut') ? 'btn-secondaire' : 'btn-primaire' }} btn-petit">Tous</a>
         @foreach (\App\Models\TitreRecette::STATUTS as $v => $l)<a href="{{ route('titres.index', ['statut' => $v]) }}" class="{{ request('statut') === $v ? 'btn-primaire' : 'btn-secondaire' }} btn-petit">{{ $l }}</a>@endforeach
     </div>

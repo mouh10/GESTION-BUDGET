@@ -1,24 +1,22 @@
-@import '@fontsource-variable/inter';
-@import '@fontsource/space-grotesk/500.css';
-@import '@fontsource/space-grotesk/600.css';
-@import '@fontsource/space-grotesk/700.css';
+/* Public Sans : police conçue pour les interfaces de l'administration publique. */
+@import '@fontsource-variable/public-sans';
 @import 'tailwindcss';
 
 @source '../views';
 @source '../js';
 
 @theme {
-  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-titre: 'Space Grotesk', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Public Sans Variable', 'Public Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-titre: 'Public Sans Variable', 'Public Sans', ui-sans-serif, system-ui, sans-serif;
 
   /* Couleur d'accent (bleu) */
   --color-marque-50: #eff6ff;
   --color-marque-100: #dbeafe;
   --color-marque-200: #bfdbfe;
   --color-marque-400: #60a5fa;
-  --color-marque-500: #4a90e2;
-  --color-marque-600: #2f7bd8;
-  --color-marque-700: #1d63b8;
+  --color-marque-500: #3b7ce8;
+  --color-marque-600: #2f6fde;
+  --color-marque-700: #2159bd;
   --color-marque-800: #1a4f8f;
 
   /* Bleu nuit (boutons principaux, panneau de connexion) */
@@ -27,15 +25,20 @@
 }
 
 @layer base {
+  /* Taille de base réduite (~90 %) : toute l'interface, exprimée en rem, suit. */
+  html { font-size: 14.5px; }
   body {
-    @apply bg-slate-50 text-slate-800 antialiased;
+    @apply text-slate-700 antialiased;
+    background: #f6f8fb;
   }
   h1, h2, h3, .titre {
     font-family: var(--font-titre);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
   }
-  h1 { @apply text-2xl sm:text-3xl font-semibold text-slate-900; }
-  h2 { @apply text-lg font-semibold text-slate-900; }
+  /* Chiffres de même largeur partout : les montants restent alignés en colonne. */
+  body { font-variant-numeric: tabular-nums; }
+  h1 { @apply text-[1.7rem] font-bold; color: #1b2f4e; }
+  h2 { @apply text-base font-semibold; color: #1b2f4e; }
   [x-cloak] { display: none; }
   details > summary { list-style: none; }
   details > summary::-webkit-details-marker { display: none; }
@@ -43,7 +46,7 @@
 
 /* Classes de base réutilisables (déclarées en @utility pour pouvoir être composées avec @apply). */
 @utility carte {
-  @apply bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_16px_-8px_rgba(15,23,42,0.08)];
+  @apply bg-white rounded-xl border border-slate-200/70 shadow-[0_1px_3px_rgba(15,23,42,0.05)];
 }
 @utility btn {
   @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 cursor-pointer whitespace-nowrap;
@@ -52,15 +55,25 @@
   @apply block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-[0_1px_2px_rgba(15,23,42,0.05)] placeholder:text-slate-400 focus:border-marque-500 focus:ring-4 focus:ring-marque-500/15 focus:outline-none;
 }
 @utility badge {
-  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  @apply inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium;
 }
 
+/* Couleur propre à chaque module : --m (vive), --m-clair (fond), --m-fonce (texte). */
+.module-accueil { --m: #4a90e2; --m-clair: #eff6ff; --m-fonce: #1d4f91; }
+.module-budget { --m: #2563eb; --m-clair: #eff4ff; --m-fonce: #1e40af; }
+.module-depenses { --m: #d97706; --m-clair: #fff8eb; --m-fonce: #92400e; }
+.module-recettes { --m: #059669; --m-clair: #ecfdf5; --m-fonce: #065f46; }
+.module-tresorerie { --m: #0891b2; --m-clair: #ecfeff; --m-fonce: #155e75; }
+.module-execution { --m: #7c3aed; --m-clair: #f5f3ff; --m-fonce: #5b21b6; }
+.module-comptabilite { --m: #4f46e5; --m-clair: #eef2ff; --m-fonce: #3730a3; }
+.module-parametres { --m: #64748b; --m-clair: #f1f5f9; --m-fonce: #334155; }
+
 @layer components {
-  .carte-entete { @apply px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between gap-3; }
+  .carte-entete { @apply px-6 pt-4 pb-3.5 border-b border-slate-100 flex items-center justify-between gap-3; }
   .carte-corps { @apply p-6; }
   .sous-titre { @apply text-sm text-slate-500; }
 
-  .btn-primaire { @apply btn bg-nuit text-white shadow-sm hover:bg-nuit-800 focus:ring-slate-400; }
+  .btn-primaire { @apply btn bg-marque-600 text-white shadow-sm hover:bg-marque-700 focus:ring-marque-400; }
   .btn-secondaire { @apply btn bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 focus:ring-slate-300; }
   .btn-danger { @apply btn bg-white text-red-700 border border-red-200 hover:bg-red-50 focus:ring-red-300; }
   .btn-petit { @apply px-2.5 py-1.5 text-xs rounded-lg; }
@@ -71,12 +84,14 @@
   .erreur-champ { @apply mt-1 text-xs text-red-600; }
 
   .tableau { @apply w-full text-sm; }
-  .tableau thead th { @apply bg-slate-50/80 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 px-4 py-3 border-b border-slate-100; }
+  /* Tableaux zébrés (une ligne blanche, une ligne grisée), en-tête teinté selon le module */
+  .tableau thead th { @apply text-left text-xs font-semibold px-4 py-3 text-slate-500 bg-white border-b border-slate-200; }
   .tableau thead th.num { @apply text-right; }
-  .tableau tbody td { @apply px-4 py-3 border-b border-slate-100 align-top; }
+  .tableau tbody td { @apply px-4 py-2.5 border-b border-slate-100 align-top; }
+  .tableau tbody tr:nth-child(even) td { background-color: #f3f5f9; }
   .tableau tbody tr:last-child td { @apply border-b-0; }
-  .tableau tbody tr:hover td { @apply bg-slate-50/70; }
-  .tableau tfoot td { @apply px-4 py-3 font-semibold bg-slate-50 border-t border-slate-200; }
+  .tableau tbody tr:hover td { background-color: #e8eef7; }
+  .tableau tfoot td { @apply px-4 py-3 font-semibold text-slate-900 bg-slate-50 border-t border-slate-200; }
   .num { @apply text-right tabular-nums whitespace-nowrap; }
 
   .badge-gris { @apply badge bg-slate-100 text-slate-700; }
@@ -86,19 +101,49 @@
   .badge-rouge { @apply badge bg-red-50 text-red-700 ring-1 ring-red-600/15; }
 
   .lien { @apply text-marque-700 hover:text-marque-800 hover:underline; }
+  :focus-visible { outline: 2px solid #3b7ce8; outline-offset: 2px; }
 
-  /* Menu latéral clair */
-  .nav-lien { @apply flex items-center gap-3 rounded-xl px-3 py-2 text-[15px] text-slate-700 transition hover:bg-slate-100 hover:text-slate-900; }
-  .nav-lien svg { @apply h-5 w-5 shrink-0 text-slate-500; }
-  .nav-lien.actif { @apply bg-marque-50 text-slate-900 font-medium; }
+  /* Menu latéral blanc, épuré */
+  .nav-lien { @apply flex items-center gap-3 rounded-lg px-3 py-2 text-[14px] font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900; }
+  .nav-lien svg { @apply h-[18px] w-[18px] shrink-0 text-slate-500; }
+  .nav-lien.actif { @apply bg-marque-100 text-marque-800 font-bold; box-shadow: inset 3px 0 0 var(--color-marque-600); }
   .nav-lien.actif svg { @apply text-marque-600; }
-  .nav-titre { @apply px-3 pt-6 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400; }
 
-  /* Indicateurs */
-  .kpi { @apply carte p-5; }
-  .kpi-libelle { @apply text-[15px] text-slate-600; }
-  .kpi-valeur { @apply mt-3 text-2xl sm:text-[28px] leading-tight font-semibold tabular-nums text-slate-900; font-family: var(--font-titre); }
+  /* Onglets des sous-rubriques : pastilles en gras, l'onglet actif en couleur pleine */
+  .onglets { @apply flex flex-wrap gap-2 rounded-xl bg-slate-100/80 p-1.5; }
+  .onglet { @apply rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-marque-700; }
+  .onglet.actif { @apply bg-marque-600 text-white shadow-sm hover:bg-marque-600 hover:text-white; }
+
+  /* Indicateurs : petites cartes colorées comme celles du tableau de bord.
+     La couleur alterne d'une carte à l'autre (bleu, vert, violet, rouge, turquoise, orange). */
+  .kpi { @apply relative overflow-hidden rounded-xl p-5 text-white shadow-sm transition; background: #3a6fe0; }
+  .kpi:nth-child(6n+2) { background: #22b573; }
+  .kpi:nth-child(6n+3) { background: #7c5cdb; }
+  .kpi:nth-child(6n+4) { background: #f0654f; }
+  .kpi:nth-child(6n+5) { background: #1b9bb0; }
+  .kpi:nth-child(6n+6) { background: #e07b1a; }
+  a.kpi:hover { filter: brightness(1.06); transform: translateY(-1px); }
+  /* Textes lisibles sur fond coloré (les badges de statut gardent leurs couleurs) */
+  .kpi, .kpi p, .kpi .kpi-valeur, .kpi .titre, .kpi .lien, .kpi [class*="text-slate-9"], .kpi [class*="text-slate-8"], .kpi [class*="text-slate-7"],
+  .kpi [class*="text-red-"], .kpi [class*="text-emerald-"] { color: #fff !important; }
+  .kpi .kpi-libelle, .kpi [class*="text-slate-6"], .kpi [class*="text-slate-5"], .kpi [class*="text-slate-4"] { color: rgb(255 255 255 / 0.82) !important; }
+  .kpi .lien { text-decoration: underline; text-underline-offset: 2px; }
+  .kpi-libelle { @apply text-[15px] font-medium; }
+  .kpi-valeur { @apply mt-3 whitespace-nowrap text-xl xl:text-2xl leading-tight font-bold tabular-nums; font-family: var(--font-titre); letter-spacing: -0.02em; }
   .kpi-icone { @apply flex h-9 w-9 items-center justify-center rounded-xl; }
+
+  /* Grandes cartes colorées du tableau de bord */
+  .carte-vive { @apply relative overflow-hidden rounded-xl p-5 text-white shadow-sm; }
+  .carte-vive.bleu { background: #3a6fe0; }
+  .carte-vive.vert { background: #22b573; }
+  .carte-vive.rouge { background: #f0654f; }
+  .carte-vive .icone-ronde { @apply flex h-11 w-11 items-center justify-center rounded-full bg-white/20; }
+
+  /* Lignes cliquables : toute la ligne mène à la fiche */
+  .tableau tbody tr.ligne-cliquable { cursor: pointer; }
+
+  /* En-tête et pied de page officiels : seulement à l'impression */
+  .entete-impression, .pied-impression { display: none; }
 
   .menu-deroulant { @apply absolute right-0 z-40 mt-2 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl; }
 
@@ -115,9 +160,24 @@
 }
 
 @media print {
-  .no-print { display: none !important; }
+  @page { size: A4 landscape; margin: 10mm; }
+  html { font-size: 12px; }
+  .no-print, .col-actions, nav.onglets, [data-panneau][hidden], main form[method="GET" i], main .btn-primaire, main .btn-secondaire, main .btn-danger { display: none !important; }
+  .entete-impression { display: flex !important; justify-content: space-between; gap: 1rem; border-bottom: 2px solid #1b2f4e; padding: 10px 0 8px; margin-bottom: 14px; color: #1b2f4e; position: relative; }
+  .entete-impression::before { content: ""; position: absolute; top: 0; left: 0; width: 90px; height: 4px; background: linear-gradient(90deg, #00853f 0 33.3%, #fdef42 33.3% 66.6%, #e31b23 66.6%); }
+  .pied-impression { display: block !important; margin-top: 16px; border-top: 1px solid #cbd5e1; padding-top: 6px; font-size: 10px; color: #64748b; text-align: center; }
+  a { color: inherit !important; text-decoration: none !important; }
+  .tableau thead { display: table-header-group; }
+  .tableau tr { break-inside: avoid; }
+  .tableau thead th { color: #1b2f4e; border-bottom: 1.5px solid #1b2f4e; }
+  .overflow-x-auto { overflow: visible !important; }
+  canvas { max-width: 100% !important; }
   body { background: white; }
   .carte { box-shadow: none; border: none; }
+  .kpi, .carte-vive { background: #fff !important; color: #1b2f4e !important; border: 1px solid #cbd5e1; box-shadow: none; }
+  .kpi *, .carte-vive * { color: #1b2f4e !important; }
+  .onglets { display: none !important; }
   main { padding: 0 !important; }
-  .lg\:pl-72 { padding-left: 0 !important; }
+  .lg\:pl-60 { padding-left: 0 !important; }
+  .tableau tbody tr:nth-child(even) td { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

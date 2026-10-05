@@ -1,5 +1,6 @@
 <x-layout :titre="'Titre '.$titre->numero">
-    <x-entete :titre="'Titre de recette '.$titre->numero" :sous-titre="$titre->tiers->nom.' — '.$titre->objet">
+    <x-entete :imprimer="false" :titre="'Titre de recette '.$titre->numero" :sous-titre="$titre->tiers->nom.' — '.$titre->objet">
+        <a href="{{ route('titres.imprimer', $titre) }}" target="_blank" class="btn-secondaire"><x-icone nom="imprimante" class="h-4 w-4" /> Imprimer le titre</a>
         @if (auth()->user()->estComptable() && $titre->peutEtreRecouvre())
             <a href="{{ route('titres.recouvrement', $titre) }}" class="btn-primaire">Enregistrer un recouvrement</a>
         @endif
@@ -39,5 +40,10 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+        <x-pieces-jointes :objet="$titre" type="titre" />
+        <x-historique :entrees="\App\Models\JournalAudit::pour([$titre])" />
     </div>
 </x-layout>

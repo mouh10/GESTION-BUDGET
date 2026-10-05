@@ -17,7 +17,7 @@ class CompteController extends Controller
                 $q->where(fn ($w) => $w->where('numero', 'like', $terme.'%')->orWhere('libelle', 'like', '%'.$terme.'%'));
             })
             ->orderBy('numero')
-            ->paginate(50)
+            ->paginate(par_page(50))
             ->withQueryString();
 
         return view('comptes.index', compact('comptes'));

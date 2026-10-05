@@ -53,7 +53,7 @@ class PagesTest extends TestCase
             '/modifications', '/modifications/create', "/modifications/{$mod->id}", '/engagements', '/engagements/create',
             "/engagements/{$e->id}", "/engagements/{$e->id}/imprimer", '/mandats', "/mandats/{$m->id}", "/mandats/{$m->id}/imprimer",
             '/marches', '/marches/create', '/marches/1', '/tiers', '/tiers?type=redevable', '/tiers/create', '/tiers/1',
-            '/titres', '/titres/create', "/titres/{$t->id}", '/tresorerie', '/tresorerie/1', '/tresorerie/virement',
+            '/titres', '/titres/create', "/titres/{$t->id}", "/titres/{$t->id}/imprimer", "/modifications/{$mod->id}/imprimer", '/tresorerie', '/tresorerie/1', '/tresorerie/virement',
             '/execution/depenses', '/execution/depenses?par=titre', '/execution/depenses?par=ligne', '/execution/depenses?export=csv', '/execution/recettes',
             '/programmes', '/services', '/natures', '/natures?type=recette', '/comptes', '/journaux', '/exercices', '/utilisateurs',
             '/ecritures', '/etats/balance', '/etats/bilan', '/etats/grand-livre', '/etats/journal', '/etats/compte-de-resultat', '/recherche?q=EJ',
@@ -62,6 +62,20 @@ class PagesTest extends TestCase
         foreach ($pages as $page) {
             $this->get($page)->assertOk();
         }
+    }
+
+    public function test_menu_parametres_et_impression(): void
+    {
+        $this->connecter('admin');
+
+        $this->get('/')->assertOk()->assertSee('Paramètres');
+        $this->get('/utilisateurs')->assertOk()->assertSee('impression=1', false);
+
+        // À l'impression, la liste n'est plus paginée (plan comptable : 50 comptes par page à l'écran).
+        $total = \App\Models\Compte::count();
+        $this->assertGreaterThan(50, $total);
+        $page = $this->get('/comptes?impression=1')->assertOk()->assertSee('data-impression', false)->getContent();
+        $this->assertSame($total, preg_match_all('#href="[^"]*/comptes/\d+/edit"#', $page));
     }
 
     public function test_parcours_complet_par_formulaires_selon_les_roles(): void

@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Action d'un programme. */
 class Action extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
     protected $table = 'actions';
 
     protected $fillable = ['programme_id', 'code', 'libelle'];

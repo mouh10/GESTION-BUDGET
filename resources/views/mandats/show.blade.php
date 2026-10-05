@@ -1,13 +1,13 @@
 @php $e = $mandat->liquidation->engagement; $l = $e->ligneCredit; $u = auth()->user(); @endphp
 <x-layout :titre="'Mandat '.$mandat->numero">
-    <x-entete :titre="'Mandat '.$mandat->numero" :sous-titre="$e->tiers->nom.' — '.$e->objet">
+    <x-entete :imprimer="false" :titre="'Mandat '.$mandat->numero" :sous-titre="$e->tiers->nom.' — '.$e->objet">
         @if ($u->estComptable() && $mandat->statut === 'emis')
             <form method="POST" action="{{ route('mandats.prendre-en-charge', $mandat) }}" data-confirm="Prendre en charge ce mandat ? L’écriture comptable sera passée.">@csrf<button class="btn-primaire">Prendre en charge</button></form>
         @endif
         @if ($u->estComptable() && $mandat->statut === 'pris_en_charge')
             <a href="{{ route('mandats.paiement', $mandat) }}" class="btn-primaire"><x-icone nom="portefeuille" class="h-4 w-4" /> Payer</a>
         @endif
-        <a href="{{ route('mandats.imprimer', $mandat) }}" target="_blank" class="btn-secondaire">Imprimer</a>
+        <a href="{{ route('mandats.imprimer', $mandat) }}" target="_blank" class="btn-secondaire"><x-icone nom="imprimante" class="h-4 w-4" /> Imprimer le mandat</a>
         <a href="{{ route('engagements.show', $e) }}" class="btn-secondaire">Engagement {{ $e->numero }}</a>
     </x-entete>
 
@@ -53,5 +53,10 @@
                 </form>
             @endif
         </div>
+    </div>
+
+    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+        <x-pieces-jointes :objet="$mandat" type="mandat" />
+        <x-historique :entrees="\App\Models\JournalAudit::pour([$mandat, $mandat->liquidation])" />
     </div>
 </x-layout>

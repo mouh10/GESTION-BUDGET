@@ -73,7 +73,7 @@ class PrevisionRecetteController extends Controller
     {
         $data = $request->validate([
             'nature_id' => ['required', Rule::exists('natures', 'id')->where('type', 'recette')],
-            'service_id' => ['nullable', 'exists:services,id'],
+            'service_id' => [\App\Models\Scopes\ParService::servicesAutorises() ? 'required' : 'nullable', 'exists:services,id', \Illuminate\Validation\Rule::in(\App\Models\Scopes\ParService::servicesAutorises() ?? \App\Models\Service::pluck('id')->all())],
             'libelle' => ['nullable', 'string', 'max:255'],
             'montant_prevu' => ['required', 'numeric', 'min:0'],
         ]);
@@ -92,7 +92,7 @@ class PrevisionRecetteController extends Controller
     {
         return [
             'natures' => Nature::recettes()->where('actif', true)->orderBy('code')->get(),
-            'services' => Service::where('actif', true)->orderBy('code')->get(),
+            'services' => Service::where('actif', true)->when(\App\Models\Scopes\ParService::servicesAutorises(), fn ($q, $ids) => $q->whereIn('id', $ids))->orderBy('code')->get(),
         ];
     }
 }

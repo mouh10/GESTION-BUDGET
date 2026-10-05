@@ -8,7 +8,7 @@
         @endif
     </x-entete>
 
-    <div class="mb-5 flex flex-wrap gap-2">
+    <div class="no-print mb-5 flex flex-wrap gap-2">
         @foreach ($onglets as $v => $l)
             @php $c = $v === '' ? null : ($compteurs[$v] ?? null); @endphp
             <a href="{{ route('engagements.index', array_filter(['statut' => $v] + request()->except(['statut', 'page']))) }}" class="{{ request('statut', '') === $v ? 'btn-primaire' : 'btn-secondaire' }} btn-petit">

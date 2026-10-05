@@ -8,7 +8,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, \App\Models\Concerns\Journalise;
 
     public const ROLES = [
         'admin' => 'Administrateur',
@@ -18,7 +18,7 @@ class User extends Authenticatable
         'lecteur' => 'Lecteur (consultation)',
     ];
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'actif'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'service_id', 'actif', 'doit_changer_mdp', 'derniere_connexion'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -28,7 +28,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'actif' => 'boolean',
+            'doit_changer_mdp' => 'boolean',
+            'derniere_connexion' => 'datetime',
         ];
+    }
+
+    /** Service de rattachement : l'utilisateur ne voit alors que les crédits, dépenses et recettes de ce service. */
+    public function service(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
+
+    public function estRestreint(): bool
+    {
+        return ! $this->estAdmin() && $this->service_id !== null;
+    }
+
+    public function libelleAudit(): string
+    {
+        return 'Utilisateur '.$this->name;
     }
 
     public function estAdmin(): bool

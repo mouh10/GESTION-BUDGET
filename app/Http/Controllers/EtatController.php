@@ -33,7 +33,7 @@ class EtatController extends Controller
             ->when($du, fn ($q) => $q->whereDate('date', '>=', $du))
             ->when($au, fn ($q) => $q->whereDate('date', '<=', $au))
             ->orderBy('date')->orderBy('id')
-            ->paginate(30)->withQueryString();
+            ->paginate(par_page(30))->withQueryString();
 
         return view('etats.journal', [
             'exercice' => $exercice,

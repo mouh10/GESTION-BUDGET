@@ -1,6 +1,5 @@
 <x-layout titre="Exécution des recettes">
     <x-entete titre="Situation d’exécution des recettes" :sous-titre="$exercice->libelle">
-        <button type="button" onclick="window.print()" class="btn-secondaire">Imprimer</button>
     </x-entete>
     @php $t = ['prevu' => $situation->sum('prevu'), 'emis' => $situation->sum('emis'), 'recouvre' => $situation->sum('recouvre')]; @endphp
     <div class="mb-5 grid gap-4 sm:grid-cols-3">

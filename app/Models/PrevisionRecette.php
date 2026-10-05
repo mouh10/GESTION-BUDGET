@@ -8,6 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PrevisionRecette extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
+    protected static function booted(): void
+    {
+        // Utilisateur rattaché à un service : il ne voit que les données de son service.
+        static::addGlobalScope(new \App\Models\Scopes\ParService('service'));
+    }
+
     protected $table = 'previsions_recette';
 
     protected $fillable = ['exercice_id', 'service_id', 'nature_id', 'libelle', 'montant_prevu'];

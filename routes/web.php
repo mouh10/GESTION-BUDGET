@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompteController;
 use App\Http\Controllers\DashboardController;
@@ -14,9 +15,11 @@ use App\Http\Controllers\MandatController;
 use App\Http\Controllers\MarcheController;
 use App\Http\Controllers\ModificationController;
 use App\Http\Controllers\NatureController;
+use App\Http\Controllers\PieceJointeController;
 use App\Http\Controllers\PrevisionRecetteController;
 use App\Http\Controllers\ProgrammeController;
 use App\Http\Controllers\RechercheController;
+use App\Http\Controllers\SauvegardeController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\TiersController;
 use App\Http\Controllers\TitreRecetteController;
@@ -36,6 +39,13 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'deconnexion'])->name('logout');
+    Route::get('/mon-compte/mot-de-passe', [AuthController::class, 'motDePasse'])->name('mot-de-passe.edit');
+    Route::put('/mon-compte/mot-de-passe', [AuthController::class, 'changerMotDePasse'])->name('mot-de-passe.update');
+
+    // Pièces jointes (contrôle des droits dans le contrôleur)
+    Route::post('/pieces/{type}/{id}', [PieceJointeController::class, 'store'])->name('pieces.store')->whereNumber('id');
+    Route::get('/pieces/{piece}', [PieceJointeController::class, 'telecharger'])->name('pieces.telecharger');
+    Route::delete('/pieces/{piece}', [PieceJointeController::class, 'destroy'])->name('pieces.destroy');
 
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('/recherche', RechercheController::class)->name('recherche');
@@ -49,6 +59,10 @@ Route::middleware('auth')->group(function () {
 
     // Administration : paramètres, exercices, utilisateurs, approbation des modifications
     Route::middleware('role:admin')->group(function () {
+        Route::get('audit', [AuditController::class, 'index'])->name('audit.index');
+        Route::get('sauvegardes', [SauvegardeController::class, 'index'])->name('sauvegardes.index');
+        Route::post('sauvegardes', [SauvegardeController::class, 'store'])->name('sauvegardes.store');
+        Route::get('sauvegardes/{fichier}', [SauvegardeController::class, 'telecharger'])->name('sauvegardes.telecharger')->where('fichier', '[A-Za-z0-9._-]+');
         Route::resource('utilisateurs', UtilisateurController::class)->except(['show'])->parameters(['utilisateurs' => 'utilisateur']);
         Route::resource('exercices', ExerciceController::class)->except(['index', 'show'])->parameters(['exercices' => 'exercice']);
         Route::post('exercices/{exercice}/cloturer', [ExerciceController::class, 'cloturer'])->name('exercices.cloturer');
@@ -122,6 +136,7 @@ Route::middleware('auth')->group(function () {
     Route::get('previsions', [PrevisionRecetteController::class, 'index'])->name('previsions.index');
     Route::get('modifications', [ModificationController::class, 'index'])->name('modifications.index');
     Route::get('modifications/{modification}', [ModificationController::class, 'show'])->name('modifications.show');
+    Route::get('modifications/{modification}/imprimer', [ModificationController::class, 'imprimer'])->name('modifications.imprimer');
 
     Route::get('engagements', [EngagementController::class, 'index'])->name('engagements.index');
     Route::get('engagements/{engagement}', [EngagementController::class, 'show'])->name('engagements.show');
@@ -136,6 +151,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('titres', [TitreRecetteController::class, 'index'])->name('titres.index');
     Route::get('titres/{titre}', [TitreRecetteController::class, 'show'])->name('titres.show');
+    Route::get('titres/{titre}/imprimer', [TitreRecetteController::class, 'imprimer'])->name('titres.imprimer');
 
     Route::get('tresorerie', [TresorerieController::class, 'index'])->name('tresorerie.index');
     Route::get('tresorerie/{tresorerie}', [TresorerieController::class, 'show'])->name('tresorerie.show');

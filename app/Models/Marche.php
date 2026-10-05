@@ -9,6 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Marché public ou contrat. */
 class Marche extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
+    protected static function booted(): void
+    {
+        // Utilisateur rattaché à un service : il ne voit que les données de son service.
+        static::addGlobalScope(new \App\Models\Scopes\ParService('ligne'));
+    }
+
     protected $table = 'marches';
 
     protected $fillable = ['exercice_id', 'numero', 'objet', 'tiers_id', 'type', 'mode_passation', 'montant', 'date_signature', 'date_fin', 'statut', 'ligne_credit_id'];

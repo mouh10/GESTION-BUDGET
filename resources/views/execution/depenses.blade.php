@@ -5,7 +5,6 @@
 <x-layout titre="Exécution des dépenses">
     <x-entete titre="Situation d’exécution des dépenses" :sous-titre="$exercice->libelle.' · situation '.(request('au') ? 'au '.date_fr(request('au')) : 'à ce jour')">
         <a href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="btn-secondaire">Exporter (CSV)</a>
-        <button type="button" onclick="window.print()" class="btn-secondaire">Imprimer</button>
     </x-entete>
 
     <div class="no-print mb-4 inline-flex flex-wrap rounded-xl border border-slate-200 bg-white p-1 text-sm">

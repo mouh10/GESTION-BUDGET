@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Exercice extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
     protected $table = 'exercices';
 
     protected $fillable = ['libelle', 'date_debut', 'date_fin', 'cloture'];
@@ -43,9 +45,21 @@ class Exercice extends Model
     {
         $id = session('exercice_id');
 
+        // Mémorisé pour la durée de la requête : le menu, les notifications et le contrôleur
+        // l'utilisent tous, inutile de relancer la même requête plusieurs fois.
+        $attributs = request()->attributes;
+        $cle = 'exercice_courant.'.($id ?? 'defaut');
+        if (($memo = $attributs->get($cle)) instanceof self) {
+            return $memo;
+        }
+
         $exercice = $id ? static::find($id) : null;
         $exercice ??= static::where('cloture', false)->orderByDesc('date_debut')->first();
         $exercice ??= static::orderByDesc('date_debut')->first();
+
+        if ($exercice) {
+            $attributs->set($cle, $exercice);
+        }
 
         return $exercice;
     }

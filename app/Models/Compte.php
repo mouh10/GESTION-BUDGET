@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Compte extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
     protected $table = 'comptes';
 
     protected $fillable = ['numero', 'libelle', 'classe', 'actif'];

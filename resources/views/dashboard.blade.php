@@ -10,205 +10,143 @@
     @else
         @php
             $u = auth()->user();
-            $prenom = explode(' ', trim($u->name))[0];
             $t = $totaux;
-            $taux = fn ($a, $b) => $b > 0 ? round($a / $b * 100, 1) : null;
-        @endphp
-
-        <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
-            <div>
-                <h1>Bonjour, {{ $prenom }}</h1>
-                <p class="mt-1 text-lg text-slate-500">
-                    {{ config('gestion.entreprise.nom') }} — {{ ucfirst(now()->translatedFormat('l j F Y')) }}
-                    · <span class="{{ $exercice->cloture ? 'text-amber-700' : '' }}">{{ $exercice->libelle }}{{ $exercice->cloture ? ' (clôturée)' : '' }}</span>
-                </p>
-            </div>
-            <div class="flex flex-wrap gap-3">
-                @if ($u->estOrdonnateur())
-                    <a href="{{ route('engagements.create') }}" class="btn-primaire px-5 py-3 text-base"><x-icone nom="plus" class="h-5 w-5" /> Nouvel engagement</a>
-                @endif
-                <a href="{{ route('execution.depenses') }}" class="btn-secondaire px-5 py-3 text-base"><x-icone nom="camembert" class="h-5 w-5 text-slate-500" /> État d’exécution</a>
-            </div>
-        </div>
-
-        {{-- Indicateurs --}}
-        <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            <div class="kpi">
-                <div class="flex items-start justify-between">
-                    <p class="kpi-libelle">Crédits ouverts (CP)</p>
-                    <span class="kpi-icone bg-marque-50 text-marque-600"><x-icone nom="cible" class="h-5 w-5" /></span>
-                </div>
-                <p class="kpi-valeur">{{ montant($t['cp_revise']) }} F</p>
-                <p class="mt-2 text-sm text-slate-500">AE : {{ montant($t['ae_revisee']) }} F @if ($t['cp_gele'] > 0)· gel {{ montant($t['cp_gele']) }}@endif</p>
-            </div>
-            <div class="kpi">
-                <div class="flex items-start justify-between">
-                    <p class="kpi-libelle">Engagé</p>
-                    <span class="kpi-icone bg-amber-50 text-amber-600"><x-icone nom="stylo" class="h-5 w-5" /></span>
-                </div>
-                <p class="kpi-valeur">{{ montant($t['engage']) }} F</p>
-                <div class="mt-2"><x-barre :taux="$t['taux_engagement']" couleur="bg-amber-500" /></div>
-            </div>
-            <div class="kpi">
-                <div class="flex items-start justify-between">
-                    <p class="kpi-libelle">Ordonnancé (mandaté)</p>
-                    <span class="kpi-icone bg-violet-50 text-violet-600"><x-icone nom="recu" class="h-5 w-5" /></span>
-                </div>
-                <p class="kpi-valeur">{{ montant($t['ordonnance']) }} F</p>
-                <div class="mt-2"><x-barre :taux="$t['taux_ordonnancement']" couleur="bg-violet-500" /></div>
-            </div>
-            <div class="kpi">
-                <div class="flex items-start justify-between">
-                    <p class="kpi-libelle">Payé</p>
-                    <span class="kpi-icone bg-emerald-50 text-emerald-600"><x-icone nom="portefeuille" class="h-5 w-5" /></span>
-                </div>
-                <p class="kpi-valeur">{{ montant($t['paye']) }} F</p>
-                <div class="mt-2"><x-barre :taux="$t['taux_paiement']" couleur="bg-emerald-500" /></div>
-            </div>
-        </div>
-
-        {{-- À traiter --}}
-        @php
             $at = $aTraiter;
-            $cartes = [
-                ['Engagements à viser', $at['aViser'], route('engagements.index', ['statut' => 'soumis']), 'bouclier', 'text-amber-600 bg-amber-50', $u->estControleur()],
-                ['Mandats à prendre en charge', $at['aPrendreEnCharge'], route('mandats.index', ['statut' => 'emis']), 'recu', 'text-marque-600 bg-marque-50', $u->estComptable()],
-                ['Mandats à payer', $at['aPayer'], route('mandats.index', ['statut' => 'pris_en_charge']), 'portefeuille', 'text-emerald-600 bg-emerald-50', $u->estComptable()],
-                ['Engagements en brouillon / rejetés', $at['brouillons'], route('engagements.index', ['statut' => 'brouillon']), 'stylo', 'text-slate-600 bg-slate-100', $u->estOrdonnateur()],
-            ];
+            $pct = fn ($v) => $v !== null ? montant($v, 1).' %' : '—';
         @endphp
-        <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            @foreach ($cartes as [$lib, $v, $url, $icone, $couleur, $moi])
-                <a href="{{ $url }}" class="carte flex items-center gap-4 p-4 transition hover:border-marque-400 {{ $moi && $v->n > 0 ? 'ring-2 ring-marque-500/30' : '' }}">
-                    <span class="kpi-icone h-11 w-11 {{ $couleur }}"><x-icone :nom="$icone" class="h-5 w-5" /></span>
-                    <span class="min-w-0">
-                        <span class="block text-sm text-slate-500">{{ $lib }}</span>
-                        <span class="titre block text-lg font-semibold text-slate-900">{{ $v->n }} <span class="text-sm font-normal text-slate-500">· {{ montant($v->total) }} F</span></span>
-                    </span>
+
+        <x-entete titre="Tableau de bord" :sous-titre="$exercice->libelle.' · '.config('gestion.entreprise.nom').' · '.ucfirst(now()->translatedFormat('l j F Y'))">
+            @if ($u->estOrdonnateur())
+                <a href="{{ route('engagements.create') }}" class="btn-primaire"><x-icone nom="plus" class="h-4 w-4" /> Nouvel engagement</a>
+            @endif
+        </x-entete>
+
+        {{-- Trois grandes cartes --}}
+        <div class="grid gap-5 lg:grid-cols-3">
+            @foreach ([
+                ['bleu', 'Engagements', $t['engage'], 'sur '.montant($t['ae_revisee']).' F d’AE · '.$pct($t['taux_engagement']), 'stylo', $evolution['engage'], route('engagements.index')],
+                ['vert', 'Recettes recouvrées', $recettes['recouvre'], 'sur '.montant($recettes['prevu']).' F prévus', 'hausse', $evolution['recouvre'], route('titres.index')],
+                ['rouge', 'Paiements', $t['paye'], 'sur '.montant($t['cp_revise']).' F de CP · '.$pct($t['taux_paiement']), 'portefeuille', $evolution['paye'], route('mandats.index', ['statut' => 'paye'])],
+            ] as [$couleur, $titre, $valeur, $detail, $icone, $serie, $lien])
+                <a href="{{ $lien }}" class="carte-vive {{ $couleur }} block transition hover:brightness-105">
+                    <div class="flex items-center gap-3">
+                        <span class="icone-ronde"><x-icone :nom="$icone" class="h-5 w-5" /></span>
+                        <div class="min-w-0">
+                            <p class="text-sm text-white/85">{{ $titre }}</p>
+                            <p class="text-2xl font-bold tabular-nums">{{ montant($valeur) }} F</p>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-xs text-white/75">{{ $detail }}</p>
+                    <div class="mt-3 h-28"><canvas data-courbe='@json($serie)' aria-label="Évolution mensuelle : {{ $titre }}" role="img"></canvas></div>
                 </a>
             @endforeach
         </div>
 
-        {{-- Graphique et programmes --}}
-        <div class="mt-6 grid gap-6 xl:grid-cols-5">
-            <div class="carte xl:col-span-3">
-                <div class="px-6 pt-6">
-                    <h2 class="text-xl">Engagements et paiements</h2>
-                    <p class="sous-titre mt-0.5">Montants par mois sur la gestion {{ $exercice->annee() }}</p>
-                </div>
-                <div class="p-6 pt-4">
-                    <div class="h-80"><canvas data-graphique='@json($evolution)' aria-label="Graphique des engagements et paiements mensuels" role="img"></canvas></div>
-                </div>
-            </div>
-
-            <div class="carte xl:col-span-2">
-                <div class="flex items-start justify-between px-6 pt-6">
-                    <div>
-                        <h2 class="text-xl">Exécution par programme</h2>
-                        <p class="sous-titre mt-0.5">Engagé sur AE révisées</p>
+        {{-- Dossiers à traiter --}}
+        <div class="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            @foreach ([
+                ['Engagements à viser', $at['aViser'], route('engagements.index', ['statut' => 'soumis']), $u->estControleur()],
+                ['Mandats à prendre en charge', $at['aPrendreEnCharge'], route('mandats.index', ['statut' => 'emis']), $u->estComptable()],
+                ['Mandats à payer', $at['aPayer'], route('mandats.index', ['statut' => 'pris_en_charge']), $u->estComptable()],
+                ['Titres à recouvrer', $at['titres'], route('titres.index', ['statut' => 'emis']), $u->estComptable()],
+            ] as [$lib, $v, $url, $moi])
+                <a href="{{ $url }}" class="carte block p-4 transition hover:border-marque-200 hover:shadow">
+                    <div class="flex items-start justify-between gap-2">
+                        <p class="text-sm font-medium text-slate-700">{{ $lib }}</p>
+                        <span class="rounded-md px-2 py-0.5 text-xs font-bold {{ $v->n > 0 && $moi ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500' }}">{{ $v->n }}</span>
                     </div>
-                    <a href="{{ route('execution.depenses', ['par' => 'programme']) }}" class="lien text-sm">Détail</a>
-                </div>
-                <ul class="mt-3 divide-y divide-slate-100 px-6 pb-3">
-                    @forelse ($programmes as $i => $p)
-                        <li class="py-3.5">
-                            <div class="flex items-center gap-4">
-                                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-marque-50 text-sm font-semibold text-marque-700">{{ $i + 1 }}</span>
-                                <div class="min-w-0 flex-1">
-                                    <p class="truncate font-medium uppercase text-slate-900" title="{{ $p->libelle }}">{{ $p->libelle }}</p>
-                                    <p class="text-sm text-slate-500">{{ montant($p->totaux['engage']) }} / {{ montant($p->totaux['ae_revisee']) }} F</p>
-                                </div>
-                            </div>
-                            <div class="mt-2 pl-15"><x-barre :taux="$p->totaux['taux_engagement']" /></div>
-                        </li>
-                    @empty
-                        <li class="py-6 text-sm text-slate-500">Aucun crédit inscrit.</li>
-                    @endforelse
-                </ul>
-            </div>
+                    <p class="mt-2 text-lg font-semibold tabular-nums text-slate-900">{{ montant($v->total) }} <span class="text-sm font-normal text-slate-400">FCFA</span></p>
+                </a>
+            @endforeach
         </div>
 
-        <div class="mt-6 grid gap-6 xl:grid-cols-3">
-            {{-- Par titre --}}
-            <div class="carte">
-                <div class="px-6 pt-6">
-                    <h2 class="text-xl">Exécution par titre</h2>
-                    <p class="sous-titre mt-0.5">Classification économique</p>
-                </div>
-                <ul class="mt-3 space-y-4 px-6 pb-6">
-                    @forelse ($titres as $g)
-                        <li>
-                            <div class="flex justify-between gap-2 text-sm">
-                                <span class="truncate font-medium text-slate-700" title="{{ $g->libelle }}">{{ $g->libelle }}</span>
-                                <span class="whitespace-nowrap tabular-nums text-slate-500">{{ montant($g->totaux['ordonnance']) }} F</span>
-                            </div>
-                            <div class="mt-1.5"><x-barre :taux="$g->totaux['taux_ordonnancement']" couleur="bg-violet-500" /></div>
-                        </li>
-                    @empty
-                        <li class="text-sm text-slate-500">Aucun crédit.</li>
-                    @endforelse
-                </ul>
+        {{-- Analyse --}}
+        <div class="mt-9" data-onglets-locaux>
+            <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+                <h2 class="text-xl font-bold">Analyse</h2>
+                <a href="{{ route('execution.depenses') }}" class="lien text-sm">Situation d’exécution complète</a>
+            </div>
+            <div class="onglets mb-5">
+                <button type="button" class="onglet actif" data-onglet="depenses">Dépenses</button>
+                <button type="button" class="onglet" data-onglet="programmes">Par programme</button>
+                <button type="button" class="onglet" data-onglet="recettes">Recettes</button>
             </div>
 
-            {{-- Recettes --}}
-            <div class="carte">
-                <div class="flex items-start justify-between px-6 pt-6">
-                    <div>
-                        <h2 class="text-xl">Recettes</h2>
-                        <p class="sous-titre mt-0.5">Prévu : {{ fcfa($recettes['prevu']) }}</p>
-                    </div>
-                    <a href="{{ route('execution.recettes') }}" class="lien text-sm">Détail</a>
-                </div>
-                <div class="space-y-5 p-6">
-                    @foreach ([['Émis (titres pris en charge)', $recettes['emis'], 'bg-marque-500'], ['Recouvré', $recettes['recouvre'], 'bg-emerald-500']] as [$lib, $v, $c])
-                        <div>
-                            <div class="flex justify-between text-sm"><span class="font-medium text-slate-700">{{ $lib }}</span><span class="font-semibold tabular-nums">{{ montant($v) }} F</span></div>
-                            <div class="mt-2"><x-barre :taux="$taux($v, $recettes['prevu'])" :couleur="$c" /></div>
+            <div data-panneau="depenses">
+                <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                    @foreach ([['Crédits ouverts (CP)', montant($t['cp_revise']).' F', 'AE : '.montant($t['ae_revisee']).' F'], ['Taux d’engagement', $pct($t['taux_engagement']), montant($t['engage']).' F engagés'], ['Taux d’ordonnancement', $pct($t['taux_ordonnancement']), montant($t['ordonnance']).' F mandatés'], ['CP disponibles', montant($t['cp_disponible']).' F', 'restes à payer : '.montant($t['ordonnance'] - $t['paye']).' F']] as [$lib, $val, $sous])
+                        <div class="carte p-4">
+                            <p class="text-sm font-medium text-slate-700">{{ $lib }}</p>
+                            <p class="mt-2 text-lg font-semibold tabular-nums text-slate-900">{{ $val }}</p>
+                            <p class="text-xs text-slate-500">{{ $sous }}</p>
                         </div>
                     @endforeach
-                    <p class="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                        {{ $at['titres']->n }} titre(s) restant à recouvrer · <strong>{{ fcfa($at['titres']->total) }}</strong>
-                    </p>
+                </div>
+                <div class="carte mt-5 overflow-x-auto">
+                    <table class="tableau">
+                        <thead><tr><th>Titre</th><th class="num">CP révisés</th><th class="num">Engagé</th><th class="num">Payé</th><th class="w-48">Exécution (payé / CP)</th></tr></thead>
+                        <tbody>
+                            @foreach ($titres as $g)
+                                <tr>
+                                    <td>{{ $g->libelle }}</td>
+                                    <td class="num">{{ montant($g->totaux['cp_revise']) }}</td>
+                                    <td class="num">{{ montant($g->totaux['engage']) }}</td>
+                                    <td class="num">{{ montant($g->totaux['paye']) }}</td>
+                                    <td><x-barre :taux="$g->totaux['taux_paiement']" couleur="bg-marque-500" /></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            {{-- Alertes --}}
-            <div class="carte">
-                <div class="px-6 pt-6">
-                    <h2 class="text-xl">Lignes en tension</h2>
-                    <p class="sous-titre mt-0.5">Taux d’engagement ≥ {{ config('gestion.alerte_budget') }} %</p>
+            <div data-panneau="programmes" hidden>
+                <div class="carte overflow-x-auto">
+                    <table class="tableau">
+                        <thead><tr><th>Programme</th><th class="num">AE révisées</th><th class="num">Engagé</th><th class="num">CP révisés</th><th class="num">Payé</th><th class="w-48">Engagement</th></tr></thead>
+                        <tbody>
+                            @foreach ($programmes as $p)
+                                <tr>
+                                    <td class="font-medium text-slate-800">{{ $p->libelle }}</td>
+                                    <td class="num">{{ montant($p->totaux['ae_revisee']) }}</td>
+                                    <td class="num">{{ montant($p->totaux['engage']) }}</td>
+                                    <td class="num">{{ montant($p->totaux['cp_revise']) }}</td>
+                                    <td class="num">{{ montant($p->totaux['paye']) }}</td>
+                                    <td><x-barre :taux="$p->totaux['taux_engagement']" couleur="bg-marque-500" /></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-                <ul class="mt-3 divide-y divide-slate-100 px-6 pb-3">
-                    @forelse ($alertes as $a)
-                        <li class="py-3">
-                            <a href="{{ route('credits.show', $a->ligne) }}" class="block">
-                                <span class="block truncate text-sm font-medium text-slate-900">{{ $a->nature->code }} · {{ $a->nature->libelle }}</span>
-                                <span class="block text-xs text-slate-500">{{ $a->ligne->imputation() }} · disponible {{ fcfa($a->ae_disponible) }}</span>
-                            </a>
-                            <div class="mt-1.5"><x-barre :taux="$a->taux_engagement" /></div>
-                        </li>
-                    @empty
-                        <li class="py-6 text-sm text-emerald-700">Aucune ligne proche de l’épuisement.</li>
-                    @endforelse
-                </ul>
-                @if ($at['actes'] > 0)
-                    <a href="{{ route('modifications.index') }}" class="mx-6 mb-5 block rounded-xl bg-violet-50 px-3 py-2 text-sm text-violet-700">{{ $at['actes'] }} acte(s) de modification en attente d’approbation</a>
+                @if ($alertes->isNotEmpty())
+                    <p class="mt-4 text-sm text-slate-600"><strong class="text-amber-700">{{ $alertes->count() }} ligne(s) en tension</strong> (engagées à plus de {{ config('gestion.alerte_budget') }} %) :
+                        @foreach ($alertes as $a)<a href="{{ route('credits.show', $a->ligne) }}" class="lien">{{ $a->nature->libelle }}</a>@if (! $loop->last), @endif @endforeach
+                    </p>
                 @endif
+            </div>
+
+            <div data-panneau="recettes" hidden>
+                <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                    @foreach ([['Prévisions', $recettes['prevu']], ['Titres émis', $recettes['emis']], ['Recouvré', $recettes['recouvre']], ['Reste à recouvrer', $recettes['emis'] - $recettes['recouvre']]] as [$lib, $val])
+                        <div class="carte p-4">
+                            <p class="text-sm font-medium text-slate-700">{{ $lib }}</p>
+                            <p class="mt-2 text-lg font-semibold tabular-nums text-slate-900">{{ montant($val) }} <span class="text-sm font-normal text-slate-400">FCFA</span></p>
+                        </div>
+                    @endforeach
+                </div>
+                <p class="mt-4 text-sm"><a href="{{ route('execution.recettes') }}" class="lien">Voir le détail par nature de recette</a></p>
             </div>
         </div>
 
         {{-- Derniers engagements --}}
-        <div class="carte mt-6 overflow-hidden">
-            <div class="flex items-start justify-between px-6 py-5">
-                <div>
-                    <h2 class="text-xl">Derniers engagements</h2>
-                    <p class="sous-titre mt-0.5">Saisis par les services gestionnaires</p>
-                </div>
-                <a href="{{ route('engagements.index') }}" class="lien text-sm">Tous les engagements</a>
+        <div class="mt-9">
+            <div class="mb-4 flex items-end justify-between">
+                <h2 class="text-xl font-bold">Derniers engagements</h2>
+                <a href="{{ route('engagements.index') }}" class="lien text-sm">Tout voir</a>
             </div>
-            <div class="overflow-x-auto">
+            <div class="carte overflow-x-auto">
                 <table class="tableau">
-                    <thead><tr><th>N°</th><th>Date</th><th>Bénéficiaire</th><th>Objet</th><th>Imputation</th><th class="num">Montant</th><th>Statut</th></tr></thead>
+                    <thead><tr><th>N°</th><th>Date</th><th>Bénéficiaire</th><th>Objet</th><th class="num">Montant</th><th>Statut</th></tr></thead>
                     <tbody>
                         @forelse ($derniersEngagements as $e)
                             <tr>
@@ -216,12 +154,11 @@
                                 <td class="whitespace-nowrap">{{ date_fr($e->date) }}</td>
                                 <td>{{ $e->tiers->nom }}</td>
                                 <td>{{ $e->objet }}</td>
-                                <td class="whitespace-nowrap text-xs text-slate-500">{{ $e->ligneCredit->action->programme->code }} · {{ $e->ligneCredit->nature->code }}</td>
                                 <td class="num">{{ montant($e->montant) }}</td>
                                 <td><x-statut :statut="$e->statut" /></td>
                             </tr>
                         @empty
-                            <tr><td colspan="7" class="text-slate-500">Aucun engagement.</td></tr>
+                            <tr><td colspan="6" class="text-slate-500">Aucun engagement.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

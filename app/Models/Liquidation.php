@@ -9,6 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Liquidation : constatation du service fait et arrêté du montant dû. */
 class Liquidation extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
+    protected static function booted(): void
+    {
+        // Utilisateur rattaché à un service : il ne voit que les données de son service.
+        static::addGlobalScope(new \App\Models\Scopes\ParService('engagement'));
+    }
+
     protected $table = 'liquidations';
 
     protected $fillable = ['engagement_id', 'numero', 'date', 'reference_facture', 'date_service_fait', 'montant', 'observations', 'statut', 'user_id'];

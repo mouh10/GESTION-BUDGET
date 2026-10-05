@@ -9,7 +9,6 @@
         <div><label class="etiquette" for="du">Du</label><input id="du" type="date" name="du" value="{{ request('du') }}" class="champ"></div>
         <div><label class="etiquette" for="au">Au</label><input id="au" type="date" name="au" value="{{ request('au') }}" class="champ"></div>
         <button class="btn-secondaire">Afficher</button>
-        <button type="button" class="btn-secondaire" onclick="window.print()">Imprimer</button>
     </form>
 
     @forelse ($grandLivre as $g)

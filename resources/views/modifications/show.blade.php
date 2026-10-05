@@ -1,5 +1,6 @@
 <x-layout :titre="'Acte '.$modification->numero">
-    <x-entete :titre="\App\Models\Modification::TYPES_COURTS[$modification->type].' '.$modification->numero" :sous-titre="($modification->reference_acte ?: 'Sans référence').' · '.date_fr($modification->date)">
+    <x-entete :imprimer="false" :titre="\App\Models\Modification::TYPES_COURTS[$modification->type].' '.$modification->numero" :sous-titre="($modification->reference_acte ?: 'Sans référence').' · '.date_fr($modification->date)">
+        <a href="{{ route('modifications.imprimer', $modification) }}" target="_blank" class="btn-secondaire"><x-icone nom="imprimante" class="h-4 w-4" /> Imprimer l’acte</a>
         @if (! $modification->estApprouvee())
             @if (auth()->user()->estOrdonnateur())
                 <a href="{{ route('modifications.edit', $modification) }}" class="btn-secondaire">Modifier</a>
@@ -37,4 +38,9 @@
         </table>
     </div>
     <p class="mt-3 text-xs text-slate-500">Saisi par {{ $modification->user?->name ?? '—' }}. {{ $modification->estApprouvee() ? 'Les disponibles affichés tiennent compte de l’acte.' : 'Les disponibles affichés sont ceux d’avant approbation.' }}</p>
+
+    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+        <x-pieces-jointes :objet="$modification" type="modification" />
+        <x-historique :entrees="\App\Models\JournalAudit::pour([$modification])" />
+    </div>
 </x-layout>

@@ -87,7 +87,7 @@ class TresorerieController extends Controller
             ->when($request->filled('du'), fn ($q) => $q->whereDate('date', '>=', $request->du))
             ->when($request->filled('au'), fn ($q) => $q->whereDate('date', '<=', $request->au))
             ->orderByDesc('date')->orderByDesc('id')
-            ->paginate(30)->withQueryString();
+            ->paginate(par_page(30))->withQueryString();
 
         return view('tresorerie.show', [
             'tresorerie' => $tresorerie->load('compte', 'journal'),

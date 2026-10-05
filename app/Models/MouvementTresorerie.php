@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MouvementTresorerie extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
     protected $table = 'mouvements_tresorerie';
 
     protected $fillable = [

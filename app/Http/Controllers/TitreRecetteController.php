@@ -27,7 +27,7 @@ class TitreRecetteController extends Controller
                 $t = '%'.$request->q.'%';
                 $q->where(fn ($w) => $w->where('numero', 'like', $t)->orWhere('objet', 'like', $t)->orWhereHas('tiers', fn ($x) => $x->where('nom', 'like', $t)));
             })
-            ->orderByDesc('date')->orderByDesc('id')->paginate(25)->withQueryString();
+            ->orderByDesc('date')->orderByDesc('id')->paginate(par_page(25))->withQueryString();
 
         $totaux = TitreRecette::where('exercice_id', $exercice->id)->where('statut', '!=', 'annule')
             ->selectRaw('COALESCE(SUM(montant),0) as emis, COALESCE(SUM(montant_recouvre),0) as recouvre')->first();
@@ -49,7 +49,7 @@ class TitreRecetteController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'prevision_recette_id' => ['required', 'exists:previsions_recette,id'],
+            'prevision_recette_id' => ['required', new \App\Rules\Accessible(\App\Models\PrevisionRecette::class)],
             'tiers_id' => ['required', Rule::exists('tiers', 'id')->where('type', 'redevable')],
             'date' => ['required', 'date'],
             'date_echeance' => ['nullable', 'date', 'after_or_equal:date'],
@@ -67,6 +67,13 @@ class TitreRecetteController extends Controller
         $titre->load('tiers', 'prevision.nature', 'prevision.service', 'ecriture', 'recouvrements.compteTresorerie');
 
         return view('titres.show', compact('titre'));
+    }
+
+    public function imprimer(TitreRecette $titre)
+    {
+        $titre->load('tiers', 'exercice', 'prevision.nature.compte', 'prevision.service', 'ecriture', 'recouvrements.compteTresorerie');
+
+        return view('titres.imprimer', compact('titre'));
     }
 
     public function annuler(TitreRecette $titre)

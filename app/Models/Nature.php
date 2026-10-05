@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Nature extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
     protected $table = 'natures';
 
     protected $fillable = ['type', 'code', 'libelle', 'titre', 'compte_id', 'actif'];

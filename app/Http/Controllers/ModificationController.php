@@ -70,6 +70,13 @@ class ModificationController extends Controller
         return view('modifications.show', compact('modification', 'situation'));
     }
 
+    public function imprimer(Modification $modification)
+    {
+        $modification->load('lignes.ligneCredit.action.programme', 'lignes.ligneCredit.service', 'lignes.ligneCredit.nature', 'user', 'exercice');
+
+        return view('modifications.imprimer', compact('modification'));
+    }
+
     public function edit(Modification $modification)
     {
         if ($modification->estApprouvee()) {
@@ -122,7 +129,7 @@ class ModificationController extends Controller
             'reference_acte' => ['nullable', 'string', 'max:150'],
             'motif' => ['nullable', 'string', 'max:2000'],
             'lignes' => ['required', 'array', 'min:1'],
-            'lignes.*.ligne_credit_id' => ['required', Rule::exists('lignes_credit', 'id')->where('exercice_id', $exercice->id)],
+            'lignes.*.ligne_credit_id' => ['required', new \App\Rules\Accessible(\App\Models\LigneCredit::class, fn ($q) => $q->where('exercice_id', $exercice->id))],
             'lignes.*.ae' => ['nullable', 'numeric'],
             'lignes.*.cp' => ['nullable', 'numeric'],
         ], ['lignes.required' => 'Ajoutez au moins une ligne de crédits.']);

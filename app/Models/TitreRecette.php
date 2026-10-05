@@ -9,6 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Titre (ordre) de recette émis à l'encontre d'un redevable. */
 class TitreRecette extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
+    protected static function booted(): void
+    {
+        // Utilisateur rattaché à un service : il ne voit que les données de son service.
+        static::addGlobalScope(new \App\Models\Scopes\ParService('prevision'));
+    }
+
     protected $table = 'titres_recette';
 
     protected $fillable = ['exercice_id', 'prevision_recette_id', 'tiers_id', 'numero', 'date', 'date_echeance', 'objet', 'montant', 'montant_recouvre', 'statut', 'ecriture_id', 'user_id'];
@@ -23,6 +31,11 @@ class TitreRecette extends Model
     protected function casts(): array
     {
         return ['date' => 'date', 'date_echeance' => 'date', 'montant' => 'decimal:2', 'montant_recouvre' => 'decimal:2'];
+    }
+
+    public function exercice(): BelongsTo
+    {
+        return $this->belongsTo(Exercice::class);
     }
 
     public function prevision(): BelongsTo

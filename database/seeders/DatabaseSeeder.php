@@ -11,6 +11,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Le chargement initial n'encombre pas le journal d'audit.
+        \App\Support\Audit::sans(fn () => $this->charger());
+    }
+
+    protected function charger(): void
+    {
         $this->call([PlanComptableSeeder::class, NomenclatureSeeder::class]);
 
         $journaux = [

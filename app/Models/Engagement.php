@@ -9,6 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Engagement juridique de la dépense (bon d'engagement). */
 class Engagement extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
+    protected static function booted(): void
+    {
+        // Utilisateur rattaché à un service : il ne voit que les données de son service.
+        static::addGlobalScope(new \App\Models\Scopes\ParService('ligne'));
+    }
+
     protected $table = 'engagements';
 
     protected $fillable = [

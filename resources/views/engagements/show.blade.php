@@ -5,7 +5,7 @@
     $paye = $engagement->montantPaye();
 @endphp
 <x-layout :titre="'Engagement '.$engagement->numero">
-    <x-entete :titre="'Engagement '.$engagement->numero" :sous-titre="$engagement->objet">
+    <x-entete :imprimer="false" :titre="'Engagement '.$engagement->numero" :sous-titre="$engagement->objet">
         @if ($u->estOrdonnateur() && $engagement->estModifiable())
             <a href="{{ route('engagements.edit', $engagement) }}" class="btn-secondaire">Modifier</a>
             <form method="POST" action="{{ route('engagements.soumettre', $engagement) }}" data-confirm="Soumettre l’engagement au contrôle financier ?">@csrf<button class="btn-primaire">Soumettre au visa</button></form>
@@ -19,7 +19,7 @@
         @if ($u->estOrdonnateur() && in_array($engagement->statut, ['soumis', 'vise']) && $liquide == 0)
             <form method="POST" action="{{ route('engagements.annuler', $engagement) }}" data-confirm="Annuler l’engagement ? Les crédits seront libérés.">@csrf<button class="btn-danger">Annuler</button></form>
         @endif
-        <a href="{{ route('engagements.imprimer', $engagement) }}" target="_blank" class="btn-secondaire">Imprimer</a>
+        <a href="{{ route('engagements.imprimer', $engagement) }}" target="_blank" class="btn-secondaire"><x-icone nom="imprimante" class="h-4 w-4" /> Bon d’engagement</a>
     </x-entete>
 
     @if ($engagement->statut === 'rejete')
@@ -137,5 +137,10 @@
                 <p class="mt-3 text-slate-500">Pièce : {{ \App\Models\Engagement::TYPES[$engagement->type] }} · saisi par {{ $engagement->user?->name ?? '—' }}</p>
             </div>
         </div>
+    </div>
+
+    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+        <x-pieces-jointes :objet="$engagement" type="engagement" />
+        <x-historique :entrees="\App\Models\JournalAudit::pour(collect([$engagement])->merge($engagement->liquidations)->merge($engagement->liquidations->flatMap->mandats))" />
     </div>
 </x-layout>

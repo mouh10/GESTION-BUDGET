@@ -9,6 +9,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Acte de modification des crédits (arrêté, décret, loi de finances rectificative). */
 class Modification extends Model
 {
+    use \App\Models\Concerns\Journalise;
+
+    protected static function booted(): void
+    {
+        // Utilisateur rattaché à un service : il ne voit que les données de son service.
+        static::addGlobalScope(new \App\Models\Scopes\ParService('modification'));
+    }
+
     protected $table = 'modifications';
 
     protected $fillable = ['exercice_id', 'numero', 'date', 'type', 'reference_acte', 'motif', 'statut', 'approuve_le', 'user_id'];

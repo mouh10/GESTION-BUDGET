@@ -35,7 +35,7 @@ class EngagementController extends Controller
                 $q->where(fn ($w) => $w->where('numero', 'like', $t)->orWhere('objet', 'like', $t)->orWhereHas('tiers', fn ($x) => $x->where('nom', 'like', $t)));
             })
             ->orderByDesc('date')->orderByDesc('id')
-            ->paginate(25)->withQueryString();
+            ->paginate(par_page(25))->withQueryString();
 
         $compteurs = Engagement::where('exercice_id', $exercice->id)->selectRaw('statut, COUNT(*) as n, SUM(montant) as total')->groupBy('statut')->get()->keyBy('statut');
 
@@ -89,9 +89,9 @@ class EngagementController extends Controller
 
     public function imprimer(Engagement $engagement)
     {
-        $engagement->load('tiers', 'marche', 'viseur', 'ligneCredit.action.programme', 'ligneCredit.service', 'ligneCredit.nature');
+        $engagement->load('tiers', 'marche', 'viseur', 'exercice', 'ligneCredit.exercice', 'ligneCredit.action.programme', 'ligneCredit.service', 'ligneCredit.nature');
 
-        return view('engagements.imprimer', compact('engagement'));
+        return view('engagements.imprimer', ['engagement' => $engagement, 's' => $this->credits->pourLigne($engagement->ligneCredit)]);
     }
 
     public function edit(Engagement $engagement)
@@ -187,9 +187,9 @@ class EngagementController extends Controller
     protected function valider(Request $request): array
     {
         return $request->validate([
-            'ligne_credit_id' => ['required', 'exists:lignes_credit,id'],
+            'ligne_credit_id' => ['required', new \App\Rules\Accessible(\App\Models\LigneCredit::class)],
             'tiers_id' => ['required', Rule::exists('tiers', 'id')->where('type', 'fournisseur')],
-            'marche_id' => ['nullable', 'exists:marches,id'],
+            'marche_id' => ['nullable', new \App\Rules\Accessible(\App\Models\Marche::class)],
             'date' => ['required', 'date'],
             'type' => ['required', Rule::in(array_keys(Engagement::TYPES))],
             'objet' => ['required', 'string', 'max:255'],
